@@ -56,3 +56,14 @@ target_link_libraries(test_graph
 )
 catch_discover_tests(test_graph)
 
+
+add_executable(test_weightedgraph
+        test_weightedgraph.cpp
+)
+target_link_libraries(test_weightedgraph
+        PRIVATE
+        matrices_meshes_fem
+        Catch2::Catch2WithMain
+)
+catch_discover_tests(test_weightedgraph)
+

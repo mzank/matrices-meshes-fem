@@ -1,0 +1,99 @@
+#include <cstddef>
+#include <iostream>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include "matrices-meshes-fem/coord.h"
+#include "matrices-meshes-fem/weightedgraph.h"
+
+namespace
+{
+    // Node 0 -> 1 has distance 1 (weight 1); node 0 -> 2 has distance 2 (weight 0.25).
+    const std::vector<std::set<std::size_t>> &sampleNeighbors()
+    {
+        static const std::vector<std::set<std::size_t>> neighbors{
+            {0, 1, 2},
+            {0, 1},
+            {0}};
+        return neighbors;
+    }
+
+    const std::vector<Coord> &sampleCoords()
+    {
+        static const std::vector<Coord> coords{{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}};
+        return coords;
+    }
+} // namespace
+
+TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal weights", "[weightedgraph]")
+{
+    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
+    const auto &weights = graph.getWeights();
+
+    REQUIRE(weights.size() == 7);
+
+    REQUIRE(weights.at({0, 1}) == Catch::Approx(1.0));
+    REQUIRE(weights.at({0, 2}) == Catch::Approx(0.25));
+    REQUIRE(weights.at({1, 0}) == Catch::Approx(1.0));
+    REQUIRE(weights.at({2, 0}) == Catch::Approx(0.25));
+
+    REQUIRE(weights.at({0, 0}) == Catch::Approx(-1.25));
+    REQUIRE(weights.at({1, 1}) == Catch::Approx(-1.0));
+    REQUIRE(weights.at({2, 2}) == Catch::Approx(-0.25));
+}
+
+TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weightedgraph]")
+{
+    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
+
+    REQUIRE(graph.getWeights().count({1, 2}) == 0);
+    REQUIRE(graph.getWeights().count({2, 1}) == 0);
+
+    REQUIRE((graph.getAdjacency()[0] == std::set<std::size_t>{0, 1, 2}));
+    REQUIRE((graph.getAdjacency()[1] == std::set<std::size_t>{0, 1}));
+    REQUIRE((graph.getAdjacency()[2] == std::set<std::size_t>{0}));
+}
+
+TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]")
+{
+    const std::vector<std::set<std::size_t>> neighbors{{}, {0}};
+    const std::vector<Coord> coords{{0.0, 0.0}, {1.0, 0.0}};
+    const WeightedGraph graph(neighbors, coords);
+
+    REQUIRE(graph.getWeights().size() == 3);
+    REQUIRE(graph.getWeights().at({0, 0}) == Catch::Approx(0.0));
+    REQUIRE(graph.getWeights().at({1, 0}) == Catch::Approx(1.0));
+    REQUIRE(graph.getWeights().at({1, 1}) == Catch::Approx(-1.0));
+}
+
+TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
+{
+    const std::vector<std::set<std::size_t>> neighbors;
+    const std::vector<Coord> coords;
+    const WeightedGraph graph(neighbors, coords);
+
+    REQUIRE(graph.getAdjacency().empty());
+    REQUIRE(graph.getWeights().empty());
+}
+
+TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
+{
+    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
+
+    std::ostringstream output;
+    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    graph.print();
+    std::cout.rdbuf(old_buffer);
+
+    const std::string text = output.str();
+    REQUIRE(text.find("Weighted graph edges:") != std::string::npos);
+    REQUIRE(text.find("(0, 0) -> -1.25\n") != std::string::npos);
+    REQUIRE(text.find("(0, 1) -> 1\n") != std::string::npos);
+    REQUIRE(text.find("(0, 2) -> 0.25\n") != std::string::npos);
+    REQUIRE(text.find("(2, 2) -> -0.25\n") != std::string::npos);
+}
