@@ -1,0 +1,66 @@
+/**
+ * @file weightedgraph.h
+ * @author Marco Zank
+ * @version 0.1
+ * @date 19.11.2026
+ * @brief Represents a weighted directed graph.
+ */
+
+#ifndef WEIGHTEDGRAPH_H_INCLUDED
+#define WEIGHTEDGRAPH_H_INCLUDED
+
+#include "graph.h"
+#include "coord.h"
+#include <vector>
+#include <map>
+#include <set>
+
+/**
+ * @class WeightedGraph
+ * @brief A class to represent a weighted directed graph.
+ *
+ * This class extends the Graph class by associating weights to edges.
+ */
+class WeightedGraph : public Graph
+{
+public:
+    /**
+     * @brief Constructs a WeightedGraph from a node-to-neighbor mapping.
+     *
+     * The weights are computed based on the inverse squared node distance
+     * between the nodes representing the edge.
+     *
+     * For each edge (v, w), the weight is defined as:
+     *   \f$ w_{vw} = \frac{1}{||v - w||^2} \f$
+     *
+     * For reflexive edges (v, v), the weight is set to the **negative sum** of all outgoing
+     * non-reflexive edge weights from that node:
+     *   \f$ w_{vv} = -\sum_{w \ne v} w_{vw} \f$
+     *
+     * @param nodeToNeighbors A vector where each index represents a node, and the set contains
+     *        indices of its neighboring nodes (outgoing edges).
+     * @param coords A vector of coordinates, where coords[i] corresponds to the position of node i.
+     */
+    WeightedGraph(const std::vector<std::set<size_t>> &nodeToNeighbors,
+                  const std::vector<Coord> &coords);
+
+    /**
+     * @brief Returns the edge-to-weight mapping.
+     */
+    const std::map<std::pair<size_t, size_t>, double> &getWeights() const;
+
+    /**
+     * @brief Prints the edge-to-weight mapping.
+     */
+    void print() const;
+
+private:
+    /**
+     * @brief Edge-to-weight mapping.
+     *
+     * Each key is a pair (v, w) representing a directed edge,
+     * and the value is the associated weight.
+     */
+    std::map<std::pair<size_t, size_t>, double> weights_;
+};
+#endif // WEIGHTEDGRAPH_H_INCLUDED
