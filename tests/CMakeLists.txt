@@ -45,3 +45,14 @@ target_compile_definitions(test_mesh
 )
 catch_discover_tests(test_mesh)
 
+
+add_executable(test_graph
+        test_graph.cpp
+)
+target_link_libraries(test_graph
+        PRIVATE
+        matrices_meshes_fem
+        Catch2::Catch2WithMain
+)
+catch_discover_tests(test_graph)
+
