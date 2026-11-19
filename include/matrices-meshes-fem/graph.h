@@ -9,11 +9,10 @@
 #ifndef GRAPH_H_INCLUDED
 #define GRAPH_H_INCLUDED
 
+#include <cstddef>
 #include <vector>
 #include <map>
 #include <set>
-
-using std::size_t;
 
 /**
  * @class Graph
@@ -32,14 +31,14 @@ public:
      *        and the corresponding set contains indices of its neighboring nodes.
      *        Each neighbor represents a directed edge from the current node to that neighbor.
      */
-    Graph(const std::vector<std::set<size_t>> &node_to_neighbors);
+    Graph(const std::vector<std::set<std::size_t>> &node_to_neighbors);
 
     /**
      * @brief Returns the adjacency list of the graph.
      *
      * @return A const reference to the adjacency list.
      */
-    const std::vector<std::set<size_t>> &getAdjacency() const;
+    const std::vector<std::set<std::size_t>> &getAdjacency() const;
 
     /**
      * @brief Prints the adjacency list.
@@ -53,6 +52,6 @@ protected:
      * Each index corresponds to a node, and the set contains the indices
      * of nodes to which it has directed edges.
      */
-    std::vector<std::set<size_t>> adj_;
+    std::vector<std::set<std::size_t>> adj_;
 };
 #endif // GRAPH_H_INCLUDED

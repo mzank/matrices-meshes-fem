@@ -9,6 +9,7 @@
 #ifndef MESH_H_INCLUDED
 #define MESH_H_INCLUDED
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <array>
@@ -56,27 +57,27 @@ public:
      * @brief Returns the number of nodes of the mesh.
      * @return Number of nodes.
      */
-    size_t getNumNodes() const;
+    std::size_t getNumNodes() const;
 
     /**
      * @brief Returns the list of triangular elements.
      * Each element is represented as an array of 3 node indices.
      * @return Constant reference to a vector of triangular elements.
      */
-    const std::vector<std::array<size_t, 3>> &getElements() const;
+    const std::vector<std::array<std::size_t, 3>> &getElements() const;
 
     /**
      * @brief Returns the number of elements of the mesh.
      * @return Number of elements.
      */
-    size_t getNumElements() const;
+    std::size_t getNumElements() const;
 
     /**
      * @brief Returns the neighboring nodes for each node. The indices of the neighboring nodes are
      * in sorted order.
      * @return Constant reference to a vector of sets, each set containing indices of neighboring nodes.
      */
-    const std::vector<std::set<size_t>> &getNodeNeighbors() const;
+    const std::vector<std::set<std::size_t>> &getNodeNeighbors() const;
 
     /**
      * @brief Reads node coordinates from a file.
@@ -183,16 +184,16 @@ public:
      * @param p The point.
      * @return A pair containing the index of the closest element and the distance.
      */
-    std::pair<size_t, double> findElementShortestDistanceToPoint(const Coord &p) const;
+    std::pair<std::size_t, double> findElementShortestDistanceToPoint(const Coord &p) const;
 
 private:
-    std::vector<Coord> nodes_;                                            ///< List of node coordinates.
-    size_t num_nodes_;                                                    ///< Number of nodes.
-    std::vector<std::array<size_t, 3>> elements_;                         ///< List of triangular elements.
-    size_t num_elements_;                                                 ///< Number of elements.
-    std::vector<std::vector<size_t>> node_to_elements_;                   ///< Node-to-Element mapping. Node is part of the triangular element.
-    std::map<std::pair<int, int>, std::vector<size_t>> edge_to_elements_; ///< Edge-to-element mapping. Edge is part or the triangular element.
-    std::vector<std::set<size_t>> element_neighbors_;                     ///< Neighboring elements for each element, sharing an edge.
-    std::vector<std::set<size_t>> node_neighbors_;                        ///< Neighboring nodes for each node, including itself.
+    std::vector<Coord> nodes_;                                                 ///< List of node coordinates.
+    std::size_t num_nodes_;                                                    ///< Number of nodes.
+    std::vector<std::array<std::size_t, 3>> elements_;                         ///< List of triangular elements.
+    std::size_t num_elements_;                                                 ///< Number of elements.
+    std::vector<std::vector<std::size_t>> node_to_elements_;                   ///< Node-to-Element mapping. Node is part of the triangular element.
+    std::map<std::pair<int, int>, std::vector<std::size_t>> edge_to_elements_; ///< Edge-to-element mapping. Edge is part or the triangular element.
+    std::vector<std::set<std::size_t>> element_neighbors_;                     ///< Neighboring elements for each element, sharing an edge.
+    std::vector<std::set<std::size_t>> node_neighbors_;                        ///< Neighboring nodes for each node, including itself.
 };
 #endif // MESH_H_INCLUDED

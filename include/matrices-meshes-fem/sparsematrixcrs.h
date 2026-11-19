@@ -9,6 +9,7 @@
 #ifndef SPARSEMATRIXCRS_H_INCLUDED
 #define SPARSEMATRIXCRS_H_INCLUDED
 
+#include <cstddef>
 #include <vector>
 #include <map>
 #include <set>
@@ -32,7 +33,7 @@ public:
      * @param rows Number of rows.
      * @param cols Number of columns.
      */
-    SparseMatrixCRS(size_t rows, size_t cols);
+    SparseMatrixCRS(std::size_t rows, std::size_t cols);
 
     /**
      * @brief Constructs a sparse matrix from a list of non-zero entries for each row.
@@ -63,9 +64,9 @@ public:
      * }
      * ```
      */
-    SparseMatrixCRS(size_t rows,
-                    size_t cols,
-                    const std::vector<std::vector<std::pair<size_t, double>>> &entries_per_row);
+    SparseMatrixCRS(std::size_t rows,
+                    std::size_t cols,
+                    const std::vector<std::vector<std::pair<std::size_t, double>>> &entries_per_row);
 
     /**
      * @brief Constructs a sparse matrix from a weighted graph.
@@ -157,11 +158,11 @@ public:
     void printSparsityPattern() const;
 
 private:
-    size_t num_rows_;             ///< Number of rows in the matrix.
-    size_t num_cols_;             ///< Number of columns in the matrix.
-    std::vector<double> values_;  ///< Non-zero values in the matrix.
-    std::vector<size_t> col_idx_; ///< Column indices corresponding to values_.
-    std::vector<size_t> row_ptr_; ///< Row pointer to values_ and col_idx_.
+    std::size_t num_rows_;                            ///< Number of rows in the matrix.
+    std::size_t num_cols_;                            ///< Number of columns in the matrix.
+    std::vector<double> values_;                      ///< Non-zero values in the matrix.
+    std::vector<std::size_t> col_idx_;                ///< Column indices corresponding to values_.
+    std::vector<std::size_t> row_ptr_;                ///< Row pointer to values_ and col_idx_.
 };
 
 #endif // SPARSEMATRIXCRS_H_INCLUDED

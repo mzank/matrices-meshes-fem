@@ -9,6 +9,8 @@
 #ifndef WEIGHTEDGRAPH_H_INCLUDED
 #define WEIGHTEDGRAPH_H_INCLUDED
 
+#include <cstddef>
+
 #include "graph.h"
 #include "coord.h"
 #include <vector>
@@ -41,13 +43,13 @@ public:
      *        indices of its neighboring nodes (outgoing edges).
      * @param coords A vector of coordinates, where coords[i] corresponds to the position of node i.
      */
-    WeightedGraph(const std::vector<std::set<size_t>> &nodeToNeighbors,
+    WeightedGraph(const std::vector<std::set<std::size_t>> &nodeToNeighbors,
                   const std::vector<Coord> &coords);
 
     /**
      * @brief Returns the edge-to-weight mapping.
      */
-    const std::map<std::pair<size_t, size_t>, double> &getWeights() const;
+    const std::map<std::pair<std::size_t, std::size_t>, double> &getWeights() const;
 
     /**
      * @brief Prints the edge-to-weight mapping.
@@ -61,6 +63,6 @@ private:
      * Each key is a pair (v, w) representing a directed edge,
      * and the value is the associated weight.
      */
-    std::map<std::pair<size_t, size_t>, double> weights_;
+    std::map<std::pair<std::size_t, std::size_t>, double> weights_;
 };
 #endif // WEIGHTEDGRAPH_H_INCLUDED

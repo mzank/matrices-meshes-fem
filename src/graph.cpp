@@ -7,17 +7,16 @@
  */
 
 #include "matrices-meshes-fem/graph.h"
+#include <cstddef>
 #include <iostream>
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
-Graph::Graph(const vector<set<size_t>> &node_to_neighbors)
+Graph::Graph(const std::vector<std::set<std::size_t>> &node_to_neighbors)
     : adj_(node_to_neighbors.size())
 {
-    for (size_t v = 0; v < node_to_neighbors.size(); ++v)
+    for (std::size_t v = 0; v < node_to_neighbors.size(); ++v)
     {
-        for (size_t w : node_to_neighbors[v])
+        for (std::size_t w : node_to_neighbors[v])
         {
             adj_[v].insert(w);
         }
@@ -25,7 +24,7 @@ Graph::Graph(const vector<set<size_t>> &node_to_neighbors)
 }
 
 //-----------------------------------------------------------------------------
-const vector<set<size_t>> &Graph::getAdjacency() const
+const std::vector<std::set<std::size_t>> &Graph::getAdjacency() const
 {
     return adj_;
 }
@@ -33,14 +32,14 @@ const vector<set<size_t>> &Graph::getAdjacency() const
 //-----------------------------------------------------------------------------
 void Graph::print() const
 {
-    cout << "Graph adjacency list:";
-    for (size_t v = 0; v < adj_.size(); ++v)
+    std::cout << "Graph adjacency list:";
+    for (std::size_t v = 0; v < adj_.size(); ++v)
     {
-        cout << "\nNode " << v << ": ";
-        for (size_t w : adj_[v])
+        std::cout << "\nNode " << v << ": ";
+        for (std::size_t w : adj_[v])
         {
-            cout << w << " ";
+            std::cout << w << " ";
         }
     }
-    cout << endl;
+    std::cout << std::endl;
 }

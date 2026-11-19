@@ -7,19 +7,18 @@
  */
 
 #include "matrices-meshes-fem/weightedgraph.h"
+#include <cstddef>
 #include <iostream>
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
-WeightedGraph::WeightedGraph(const vector<set<size_t>> &nodeToNeighbors,
-                             const vector<Coord> &coords)
+WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &nodeToNeighbors,
+                             const std::vector<Coord> &coords)
     : Graph(nodeToNeighbors), weights_()
 {
-    for (size_t v = 0; v < adj_.size(); ++v)
+    for (std::size_t v = 0; v < adj_.size(); ++v)
     {
         double sum_weights = 0.0;
-        for (size_t w : adj_[v])
+        for (std::size_t w : adj_[v])
         {
             if (v == w)
                 continue;
@@ -38,7 +37,7 @@ WeightedGraph::WeightedGraph(const vector<set<size_t>> &nodeToNeighbors,
 }
 
 //-----------------------------------------------------------------------------
-const map<pair<size_t, size_t>, double> &WeightedGraph::getWeights() const
+const std::map<std::pair<std::size_t, std::size_t>, double> &WeightedGraph::getWeights() const
 {
     return weights_;
 }
@@ -46,9 +45,9 @@ const map<pair<size_t, size_t>, double> &WeightedGraph::getWeights() const
 //-----------------------------------------------------------------------------
 void WeightedGraph::print() const
 {
-    cout << "Weighted graph edges:\n";
+    std::cout << "Weighted graph edges:\n";
     for (const auto &[edge, weight] : weights_)
     {
-        cout << "(" << edge.first << ", " << edge.second << ") -> " << weight << "\n";
+        std::cout << "(" << edge.first << ", " << edge.second << ") -> " << weight << "\n";
     }
 }
