@@ -65,8 +65,8 @@ add_library(matrices_meshes_fem::matrices_meshes_fem ALIAS matrices_meshes_fem)
 
 target_include_directories(matrices_meshes_fem
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_compile_features(matrices_meshes_fem PUBLIC cxx_std_20)
@@ -132,3 +132,11 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/matrices_meshes_femConfigVersion.cmake
     DESTINATION ${MMF_CMAKE_INSTALL_DIR}
 )
+
+
+# Enable testing
+include(CTest)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

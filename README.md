@@ -19,14 +19,14 @@ A small C++20 library for working with 2D triangular meshes and graph-based spar
 ├── examples/main.cpp            # demo executable
 ├── include/matrices-meshes-fem/ # public headers
 ├── src/                         # implementation
-└── tests/                       # reserved for future tests
+└── tests/                       # Catch2 unit tests
 ```
 
 ## Build
 
 ```bash
 cmake -S . -B build
-cmake --build build
+cmake --build build --parallel
 ```
 
 The default build type is `Release`. To override it or enable the optional optimizations:
@@ -36,8 +36,20 @@ cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Debug \
     -DENABLE_NATIVE_ARCH=ON \
     -DENABLE_FAST_MATH=ON
-cmake --build build
+cmake --build build --parallel
 ```
+
+## Tests
+
+Tests are written with [Catch2](https://github.com/catchorg/Catch2) and registered with CTest. Catch2 is downloaded automatically at configure time via `FetchContent`, so the first configure requires network access. The current suite starts with `tests/test_coord.cpp`, covering the `Coord` struct.
+
+```bash
+cmake -S . -B build -DBUILD_TESTING=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+```
+
+`BUILD_TESTING` defaults to `ON` through `include(CTest)`, so the configure flag above is optional. Use `-DBUILD_TESTING=OFF` to skip building the tests.
 
 ## Install
 
