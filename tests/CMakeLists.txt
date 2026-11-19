@@ -28,6 +28,20 @@ target_link_libraries(test_coord
         matrices_meshes_fem
         Catch2::Catch2WithMain
 )
-
 catch_discover_tests(test_coord)
+
+
+add_executable(test_mesh
+        test_mesh.cpp
+)
+target_link_libraries(test_mesh
+        PRIVATE
+        matrices_meshes_fem
+        Catch2::Catch2WithMain
+)
+target_compile_definitions(test_mesh
+        PRIVATE
+        MMF_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/data/meshes"
+)
+catch_discover_tests(test_mesh)
 
