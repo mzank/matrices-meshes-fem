@@ -67,3 +67,14 @@ target_link_libraries(test_weightedgraph
 )
 catch_discover_tests(test_weightedgraph)
 
+
+add_executable(test_sparsematrixcrs
+        test_sparsematrixcrs.cpp
+)
+target_link_libraries(test_sparsematrixcrs
+        PRIVATE
+        matrices_meshes_fem
+        Catch2::Catch2WithMain
+)
+catch_discover_tests(test_sparsematrixcrs)
+

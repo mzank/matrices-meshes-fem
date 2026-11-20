@@ -41,7 +41,7 @@ cmake --build build --parallel
 
 ## Tests
 
-Tests are written with [Catch2](https://github.com/catchorg/Catch2) and registered with CTest. Catch2 is downloaded automatically at configure time via `FetchContent`, so the first configure requires network access. The current suite covers the `Coord` struct (`tests/test_coord.cpp`), the `Mesh` class (`tests/test_mesh.cpp`) using the sample mesh in `data/meshes/`, the `Graph` class (`tests/test_graph.cpp`), and the `WeightedGraph` class (`tests/test_weightedgraph.cpp`).
+Tests are written with [Catch2](https://github.com/catchorg/Catch2) and registered with CTest. Catch2 is downloaded automatically at configure time via `FetchContent`, so the first configure requires network access. The current suite covers the `Coord` struct (`tests/test_coord.cpp`), the `Mesh` class (`tests/test_mesh.cpp`) using the sample mesh in `data/meshes/`, the `Graph` class (`tests/test_graph.cpp`), the `WeightedGraph` class (`tests/test_weightedgraph.cpp`), and the `SparseMatrixCRS` class (`tests/test_sparsematrixcrs.cpp`).
 
 ```bash
 cmake -S . -B build -DBUILD_TESTING=ON
