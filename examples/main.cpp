@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
         }
         catch (const std::runtime_error &e)
         {
-            std::cerr << "Error matrix-vector multiplication: " << e.what() << std::endl;
+            std::cerr << "Error matrix-vector multiplication: " << e.what() << "\n";
         }
 
         std::cout << "\n------------------------------------ ASCII file I/O -----------------------------\n";
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         }
         catch (const std::runtime_error &e)
         {
-            std::cerr << "Error writing/reading ASCII file matrix_test.txt: " << e.what() << std::endl;
+            std::cerr << "Error writing/reading ASCII file matrix_test.txt: " << e.what() << "\n";
         }
 
         std::cout << "\n------------------------------------ Binary file I/O ----------------------------\n";
@@ -181,13 +181,13 @@ int main(int argc, char *argv[])
         }
         catch (const std::runtime_error &e)
         {
-            std::cerr << "Error writing/reading binary file matrix_test.bin: " << e.what() << std::endl;
+            std::cerr << "Error writing/reading binary file matrix_test.bin: " << e.what() << "\n";
         }
         std::cout << "-------------------------------------------------------------------------------\n";
     }
     catch (const std::runtime_error &e)
     {
-        std::cerr << "Error creating mesh: " << e.what() << std::endl;
+        std::cerr << "Error creating mesh: " << e.what() << "\n";
         return 1;
     }
 

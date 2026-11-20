@@ -41,5 +41,5 @@ void Graph::print() const
             std::cout << w << " ";
         }
     }
-    std::cout << std::endl;
+    std::cout << "\n";
 }
