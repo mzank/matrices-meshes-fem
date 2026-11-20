@@ -8,7 +8,6 @@
 
 #include "matrices-meshes-fem/sparsematrixcrs.h"
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>

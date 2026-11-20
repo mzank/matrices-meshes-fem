@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/mesh.h"
@@ -33,7 +34,7 @@
  *
  * Usage:
  * @code
- * ./main coordinates_file elements_file
+ * ./example_main coordinates_file elements_file
  * @endcode
  *
  * @param argc Number of command-line arguments.
