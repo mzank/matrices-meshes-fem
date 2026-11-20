@@ -9,6 +9,7 @@
 #include "matrices-meshes-fem/weightedgraph.h"
 #include <cstddef>
 #include <iostream>
+#include <utility>
 
 //-----------------------------------------------------------------------------
 WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &nodeToNeighbors,
