@@ -78,3 +78,15 @@ target_link_libraries(test_sparsematrixcrs
 )
 catch_discover_tests(test_sparsematrixcrs)
 
+
+# Apply the project warning and optimization options to all test targets.
+foreach(target
+        test_coord
+        test_mesh
+        test_graph
+        test_weightedgraph
+        test_sparsematrixcrs
+)
+    matrices_meshes_fem_set_compile_options(${target})
+endforeach()
+
