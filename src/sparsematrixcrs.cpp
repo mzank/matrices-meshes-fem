@@ -84,23 +84,45 @@ SparseMatrixCRS::SparseMatrixCRS(const WeightedGraph &graph)
       num_cols_(num_rows_), // Assuming square matrix
       values_(),
       col_idx_(),
-      row_ptr_(num_rows_ + 1, 0)
+      row_ptr_{0} // initial row offset
 {
     const auto &adjacency = graph.getAdjacency();
     const auto &weights = graph.getWeights();
 
+    // Calculate the total number of non-zero elements.
+    const auto nnz = std::accumulate(
+        adjacency.begin(),
+        adjacency.end(),
+        std::size_t{0},
+        [](std::size_t sum, const auto &neighbors)
+        {
+            return sum + neighbors.size();
+        });
+
+    // Reserve memory to avoid unnecessary reallocations.
+    values_.reserve(nnz);
+    col_idx_.reserve(nnz);
+    row_ptr_.reserve(num_rows_ + 1);
+
+    // Process each row.
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        const auto &neighbors = adjacency.at(row);
-
-        for (const std::size_t col : neighbors)
+        for (const std::size_t col : adjacency.at(row))
         {
-            std::pair<std::size_t, std::size_t> edge{row, col};
-            values_.push_back(weights.at(edge));
+            // Validate column index.
+            if (col >= num_cols_)
+                throw std::out_of_range("Column index out of range");
+
+            values_.push_back(weights.at({row, col}));
             col_idx_.push_back(col);
         }
-        row_ptr_[row + 1] = values_.size();
+
+        // Store the end position of the current row.
+        row_ptr_.push_back(values_.size());
     }
+
+    // Handle missing (empty) rows.
+    row_ptr_.resize(num_rows_ + 1, values_.size());
 }
 
 //-----------------------------------------------------------------------------
