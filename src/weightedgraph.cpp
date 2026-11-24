@@ -7,8 +7,11 @@
  */
 
 #include "matrices-meshes-fem/weightedgraph.h"
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <numeric>
+#include <ranges>
 #include <utility>
 
 //-----------------------------------------------------------------------------
@@ -16,25 +19,26 @@ WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_n
                              const std::vector<Coord> &coords)
     : Graph(node_to_neighbors), weights_()
 {
-    for (std::size_t v = 0; v < adj_.size(); ++v)
-    {
-        double sum_weights = 0.0;
-        for (std::size_t w : adj_[v])
-        {
-            if (v == w)
-                continue;
+    std::ranges::for_each(std::views::iota(std::size_t{0}, adj_.size()),
+                          [this, &coords](std::size_t v)
+                          {
+                              const double sum_weights = std::accumulate(
+                                  adj_[v].begin(), adj_[v].end(), 0.0,
+                                  [this, &coords, v](double sum, std::size_t w)
+                                  {
+                                      if (v == w)
+                                          return sum;
 
-            double dx = coords[v].x_ - coords[w].x_;
-            double dy = coords[v].y_ - coords[w].y_;
+                                      const double dx = coords[v].x_ - coords[w].x_;
+                                      const double dy = coords[v].y_ - coords[w].y_;
+                                      const double weight = 1.0 / (dx * dx + dy * dy);
 
-            double weight = 1.0 / (dx * dx + dy * dy);
+                                      weights_[{v, w}] = weight;
+                                      return sum + weight;
+                                  });
 
-            weights_[{v, w}] = weight;
-            sum_weights += weight;
-        }
-
-        weights_[{v, v}] = -sum_weights;
-    }
+                              weights_[{v, v}] = -sum_weights;
+                          });
 }
 
 //-----------------------------------------------------------------------------
