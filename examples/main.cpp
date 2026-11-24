@@ -6,6 +6,7 @@
  * @brief Demonstrates usage of Mesh, Graph, WeightedGraph, and SparseMatrixCRS classes.
  */
 
+#include <array>
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
@@ -80,17 +81,16 @@ int main(int argc, char *argv[])
         std::cin.get();
 
         std::cout << "\n------------------------------------ Point-to-element distances -----------------\n";
-        Coord points[7] = {{0.2, 0.3},
-                           {0.0, 0.333333},
-                           {0.2, -1.0},
-                           {2.0, 0.3},
-                           {0.2, 3.0},
-                           {-0.2, 0.3},
-                           {-1.0, -2.0}};
+        constexpr std::array<Coord, 7> points{{{0.2, 0.3},
+                                               {0.0, 0.333333},
+                                               {0.2, -1.0},
+                                               {2.0, 0.3},
+                                               {0.2, 3.0},
+                                               {-0.2, 0.3},
+                                               {-1.0, -2.0}}};
 
-        for (std::size_t i = 0; i < 7; ++i)
+        for (const Coord &p : points)
         {
-            Coord p = points[i];
             std::pair<std::size_t, double> element_distance_min = mesh.findElementShortestDistanceToPoint(p);
             std::cout << "(" << p.x_ << "," << p.y_ << "): "
                  << "distance=" << element_distance_min.second
