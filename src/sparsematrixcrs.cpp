@@ -8,8 +8,12 @@
 
 #include "matrices-meshes-fem/sparsematrixcrs.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <numeric>
+#include <ranges>
 #include <stdexcept>
 #include <utility>
 
@@ -20,30 +24,58 @@ SparseMatrixCRS::SparseMatrixCRS(std::size_t rows, std::size_t cols)
 }
 
 //-----------------------------------------------------------------------------
-SparseMatrixCRS::SparseMatrixCRS(std::size_t rows,
-                                 std::size_t cols,
-                                 const std::vector<std::vector<std::pair<std::size_t, double>>> &entries_per_row)
-    : num_rows_(rows), num_cols_(cols), values_(), col_idx_(), row_ptr_()
+SparseMatrixCRS::SparseMatrixCRS(
+    std::size_t rows,
+    std::size_t cols,
+    const std::vector<std::vector<std::pair<std::size_t, double>>> &entries_per_row)
+    : num_rows_(rows),
+      num_cols_(cols),
+      values_(),
+      col_idx_(),
+      row_ptr_{0} // initial row offset
 {
-    row_ptr_.push_back(0); // Start of first row
+    // Validate the number of supplied rows.
+    if (entries_per_row.size() > rows)
+    {
+        throw std::invalid_argument("Too many rows in entries_per_row");
+    }
 
+    // Calculate the total number of non-zero elements.
+    const auto nnz = std::accumulate(
+        entries_per_row.begin(),
+        entries_per_row.end(),
+        std::size_t{0},
+        [](std::size_t sum, const auto &row)
+        {
+            return sum + row.size();
+        });
+
+    // Reserve memory to avoid unnecessary reallocations.
+    values_.reserve(nnz);
+    col_idx_.reserve(nnz);
+    row_ptr_.reserve(rows + 1);
+
+    // Process each row.
     for (const auto &row : entries_per_row)
     {
-        for (const auto &entry : row)
+        for (const auto &[col, value] : row)
         {
-            std::size_t col = entry.first;
-            double val = entry.second;
+            // Validate column index.
+            if (col >= cols)
+            {
+                throw std::out_of_range("Column index out of range");
+            }
 
-            values_.push_back(val);
+            values_.push_back(value);
             col_idx_.push_back(col);
         }
-        row_ptr_.push_back(values_.size()); // Mark end of this row (start of next)
-    }
 
-    while (row_ptr_.size() < num_rows_ + 1)
-    {
+        // Store the end position of the current row.
         row_ptr_.push_back(values_.size());
     }
+
+    // Handle missing (empty) rows.
+    row_ptr_.resize(rows + 1, values_.size());
 }
 
 //-----------------------------------------------------------------------------
