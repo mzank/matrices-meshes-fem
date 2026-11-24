@@ -1,7 +1,9 @@
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -79,6 +81,39 @@ TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
 
     REQUIRE(graph.getAdjacency().empty());
     REQUIRE(graph.getWeights().empty());
+}
+
+TEST_CASE("WeightedGraph rejects a coordinate count mismatch", "[weightedgraph]")
+{
+    std::vector<std::set<std::size_t>> const neighbors{{}, {0}};
+    std::vector<Coord> const coords{{0.0, 0.0}};
+
+    REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
+}
+
+TEST_CASE("WeightedGraph rejects coincident connected nodes", "[weightedgraph]")
+{
+    std::vector<std::set<std::size_t>> const neighbors{{0, 1}, {0}};
+    std::vector<Coord> const coords{{1.0, 2.0}, {1.0, 2.0}};
+
+    REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
+}
+
+TEST_CASE("WeightedGraph rejects coincident nodes without an edge", "[weightedgraph]")
+{
+    std::vector<std::set<std::size_t>> const neighbors{{}, {}};
+    std::vector<Coord> const coords{{1.0, 2.0}, {1.0, 2.0}};
+
+    REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
+}
+
+TEST_CASE("WeightedGraph rejects NaN distances", "[weightedgraph]")
+{
+    std::vector<std::set<std::size_t>> const neighbors{{0, 1}, {0}};
+    std::vector<Coord> const coords{
+        {0.0, 0.0}, {std::numeric_limits<double>::quiet_NaN(), 1.0}};
+
+    REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
 }
 
 TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")

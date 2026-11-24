@@ -43,6 +43,10 @@ public:
      * @param node_to_neighbors A vector where each index represents a node, and the set contains
      *        indices of its neighboring nodes (outgoing edges).
      * @param coords A vector of coordinates, where coords[i] corresponds to the position of node i.
+     *
+     * @throws std::invalid_argument If the number of coordinates does not match the number
+     *         of nodes, if any two nodes share the same coordinates, or if a connected
+     *         pair has an invalid distance.
      */
     WeightedGraph(std::vector<std::set<std::size_t>> const &node_to_neighbors,
                   std::vector<Coord> const &coords);
