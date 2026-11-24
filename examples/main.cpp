@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " coordinates_file elements_file\n";
         return 1;
     }
-    std::string coords_file = argv[1];
-    std::string elements_file = argv[2];
+    std::string const coords_file = argv[1];
+    std::string const elements_file = argv[2];
 
     std::cout << "\n------------------------------------ Input files --------------------------------\n";
     std::cout << "Coordinates file: " << coords_file << '\n';
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
         for (Coord const &p : points)
         {
-            std::pair<std::size_t, double> element_distance_min = mesh.findElementShortestDistanceToPoint(p);
+            std::pair<std::size_t, double> const element_distance_min = mesh.findElementShortestDistanceToPoint(p);
             std::cout << "(" << p.x_ << "," << p.y_ << "): "
                  << "distance=" << element_distance_min.second
                  << ", closest element=" << element_distance_min.first
@@ -124,27 +124,27 @@ int main(int argc, char *argv[])
         std::cin.get();
 
         std::cout << "\n------------------------------------ Matrix-vector multiplication ---------------\n";
-        std::vector<std::vector<std::pair<std::size_t, double>>> entries_per_row = {
+        std::vector<std::vector<std::pair<std::size_t, double>>> const entries_per_row = {
             {{1, -3.2}, {3, 2.1}},
             {{2, -5.1}},
             {{0, 7.2}, {1, 6.2}, {2, -4.4}, {3, 2.3}},
             {{0, -2.0}, {1, 3.0}, {3, 2.0}}};
-        std::size_t num_rows = 4;
-        std::size_t num_cols = 4;
+        std::size_t const num_rows = 4;
+        std::size_t const num_cols = 4;
         SparseMatrixCRS matrix_test(num_rows, num_cols, entries_per_row);
         matrix_test.print();
 
-        std::vector<double> x = {-1.2, 2.3, 3.4, -4.2};
+        std::vector<double> const x = {-1.2, 2.3, 3.4, -4.2};
         try
         {
-            std::vector<double> y = matrix_test.multiply(x);
+            std::vector<double> const y = matrix_test.multiply(x);
 
             std::cout << "Input vector x: [";
-            for (double val : x)
+            for (double const val : x)
                 std::cout << val << " ";
             std::cout << "]";
             std::cout << "\nResult y = A * x: [";
-            for (double val : y)
+            for (double const val : y)
                 std::cout << val << " ";
             std::cout << "]";
             std::cout << "\nExpected result:  [-16.18 -17.34 -19 0.9 ]\n";

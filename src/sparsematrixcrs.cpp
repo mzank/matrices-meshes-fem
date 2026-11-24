@@ -131,8 +131,8 @@ void SparseMatrixCRS::print() const
     std::cout << "CRS matrix:\n";
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        std::size_t start = row_ptr_[row];
-        std::size_t end = row_ptr_[row + 1];
+        std::size_t const start = row_ptr_[row];
+        std::size_t const end = row_ptr_[row + 1];
         std::cout << "row " << row << ": ";
         for (std::size_t i = start; i < end; ++i)
         {
@@ -152,8 +152,8 @@ std::vector<double> SparseMatrixCRS::multiply(std::vector<double> const &x) cons
 
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        std::size_t start = row_ptr_[row];
-        std::size_t end = row_ptr_[row + 1];
+        std::size_t const start = row_ptr_[row];
+        std::size_t const end = row_ptr_[row + 1];
         for (std::size_t i = start; i < end; ++i)
         {
             result[row] += values_[i] * x[col_idx_[i]];
@@ -170,18 +170,18 @@ void SparseMatrixCRS::writeASCII(std::string const &filename) const
     if (!f_out)
         throw std::runtime_error("Cannot open file for writing.");
 
-    std::size_t nnz = values_.size();
+    std::size_t const nnz = values_.size();
     f_out << num_rows_ << " " << num_cols_ << " " << nnz << "\n";
 
-    for (double v : values_)
+    for (double const v : values_)
         f_out << v << " ";
     f_out << "\n";
 
-    for (std::size_t c : col_idx_)
+    for (std::size_t const c : col_idx_)
         f_out << c << " ";
     f_out << "\n";
 
-    for (std::size_t r : row_ptr_)
+    for (std::size_t const r : row_ptr_)
         f_out << r << " ";
     f_out << "\n";
 }
@@ -215,7 +215,7 @@ void SparseMatrixCRS::writeBinary(std::string const &filename) const
     if (!f_out)
         throw std::runtime_error("Cannot open file for writing.");
 
-    std::size_t nnz = values_.size();
+    std::size_t const nnz = values_.size();
     f_out.write(reinterpret_cast<char const *>(&num_rows_), sizeof(std::size_t));
     f_out.write(reinterpret_cast<char const *>(&num_cols_), sizeof(std::size_t));
     f_out.write(reinterpret_cast<char const *>(&nnz), sizeof(std::size_t));
@@ -252,8 +252,8 @@ void SparseMatrixCRS::printSparsityPattern() const
     std::cout << "\nSparsity pattern (rows x columns):\n";
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        std::size_t start = row_ptr_[row];
-        std::size_t end = row_ptr_[row + 1];
+        std::size_t const start = row_ptr_[row];
+        std::size_t const end = row_ptr_[row + 1];
         std::size_t nz_idx = start;
         for (std::size_t col = 0; col < num_cols_; ++col)
         {

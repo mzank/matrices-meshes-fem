@@ -20,11 +20,11 @@ WeightedGraph::WeightedGraph(std::vector<std::set<std::size_t>> const &node_to_n
     : Graph(node_to_neighbors), weights_()
 {
     std::ranges::for_each(std::views::iota(std::size_t{0}, adj_.size()),
-                          [this, &coords](std::size_t v)
+                          [this, &coords](std::size_t const v)
                           {
                               double const sum_weights = std::accumulate(
                                   adj_[v].begin(), adj_[v].end(), 0.0,
-                                  [this, &coords, v](double sum, std::size_t w)
+                                  [this, &coords, v](double sum, std::size_t const w)
                                   {
                                       if (v == w)
                                           return sum;

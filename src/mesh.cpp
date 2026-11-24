@@ -140,7 +140,7 @@ void Mesh::nodeToElements()
     {
         for (std::size_t n = 0; n < 3; ++n)
         {
-            std::size_t node = elements_[e][n];
+            std::size_t const node = elements_[e][n];
             node_to_elements_[node].push_back(e);
         }
     }
@@ -153,7 +153,7 @@ void Mesh::printNodeToElements() const
     for (std::size_t n = 0; n < num_nodes_; ++n)
     {
         std::cout << "Node " << n << ": ";
-        for (auto e : node_to_elements_[n])
+        for (auto const e : node_to_elements_[n])
             std::cout << e << " ";
         std::cout << "\n";
     }
@@ -164,7 +164,7 @@ void Mesh::edgeToElements()
 {
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
-        auto &nodes_el = elements_[e];
+        auto const &nodes_el = elements_[e];
         // Edges: (v0,v1), (v1,v2), (v2,v0)
         for (std::size_t i = 0; i < 3; ++i)
         {
@@ -202,12 +202,12 @@ void Mesh::printEdgeToElements() const
 //------------------------------------------------------------------------------
 void Mesh::elementNeighbors()
 {
-    for (auto &[edge, elems] : edge_to_elements_)
+    for (auto const &[edge, elems] : edge_to_elements_)
     {
         // if edge is part of two elements
         if (elems.size() == 2)
         {
-            std::size_t e1 = elems[0], e2 = elems[1];
+            std::size_t const e1 = elems[0], e2 = elems[1];
             element_neighbors_[e1].insert(e2);
             element_neighbors_[e2].insert(e1);
         }
@@ -223,7 +223,7 @@ void Mesh::printElementNeighbors() const
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
         std::cout << "\nElement " << e << ": ";
-        for (auto n : element_neighbors_[e])
+        for (auto const n : element_neighbors_[e])
             std::cout << n << " ";
     }
     std::cout << "\n";
@@ -239,11 +239,11 @@ void Mesh::nodeNeighbors()
 
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
-        auto &nodes_el = elements_[e];
+        auto const &nodes_el = elements_[e];
         for (std::size_t i = 0; i < 3; ++i)
         {
-            std::size_t n1 = nodes_el[i];
-            std::size_t n2 = nodes_el[(i + 1) % 3];
+            std::size_t const n1 = nodes_el[i];
+            std::size_t const n2 = nodes_el[(i + 1) % 3];
             node_neighbors_[n1].insert(n2);
             node_neighbors_[n2].insert(n1);
         }
@@ -257,7 +257,7 @@ void Mesh::printNodeNeighbors() const
     for (std::size_t n = 0; n < num_nodes_; ++n)
     {
         std::cout << "\nNode " << n << ": ";
-        for (auto nb : node_neighbors_[n])
+        for (auto const nb : node_neighbors_[n])
             std::cout << nb << " ";
     }
     std::cout << "\n";
@@ -267,13 +267,13 @@ void Mesh::printNodeNeighbors() const
 bool Mesh::pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const
 {
     // calculate cross products bp x ba, cp x cb, ap x ac
-    double d1 = (p.x_ - b.x_) * (a.y_ - b.y_) - (p.y_ - b.y_) * (a.x_ - b.x_);
-    double d2 = (p.x_ - c.x_) * (b.y_ - c.y_) - (p.y_ - c.y_) * (b.x_ - c.x_);
-    double d3 = (p.x_ - a.x_) * (c.y_ - a.y_) - (p.y_ - a.y_) * (c.x_ - a.x_);
+    double const d1 = (p.x_ - b.x_) * (a.y_ - b.y_) - (p.y_ - b.y_) * (a.x_ - b.x_);
+    double const d2 = (p.x_ - c.x_) * (b.y_ - c.y_) - (p.y_ - c.y_) * (b.x_ - c.x_);
+    double const d3 = (p.x_ - a.x_) * (c.y_ - a.y_) - (p.y_ - a.y_) * (c.x_ - a.x_);
 
     // sign of the cross products
-    bool sign_negative = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    bool sign_positive = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    bool const sign_negative = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    bool const sign_positive = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
     // the sign of all cross products has to be equal
     return !(sign_negative && sign_positive);
@@ -282,13 +282,13 @@ bool Mesh::pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord
 //------------------------------------------------------------------------------
 double Mesh::pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const
 {
-    Coord ab{b.x_ - a.x_, b.y_ - a.y_};
-    Coord ap{p.x_ - a.x_, p.y_ - a.y_};
+    Coord const ab{b.x_ - a.x_, b.y_ - a.y_};
+    Coord const ap{p.x_ - a.x_, p.y_ - a.y_};
 
     double t = (ap.x_ * ab.x_ + ap.y_ * ab.y_) / (ab.x_ * ab.x_ + ab.y_ * ab.y_);
     t = std::max(0.0, std::min(1.0, t)); // clamping t to [0,1]
 
-    Coord projection{a.x_ + t * ab.x_, a.y_ + t * ab.y_};
+    Coord const projection{a.x_ + t * ab.x_, a.y_ + t * ab.y_};
     return std::hypot(p.x_ - projection.x_, p.y_ - projection.y_); // calculating the norm |p - projection|
 }
 
@@ -298,9 +298,9 @@ double Mesh::pointToTriangleDistance(Coord const &p, Coord const &a, Coord const
     if (pointInTriangle(p, a, b, c))
         return 0.0;
 
-    double d1 = pointToSegmentDistance(p, a, b);
-    double d2 = pointToSegmentDistance(p, b, c);
-    double d3 = pointToSegmentDistance(p, c, a);
+    double const d1 = pointToSegmentDistance(p, a, b);
+    double const d2 = pointToSegmentDistance(p, b, c);
+    double const d3 = pointToSegmentDistance(p, c, a);
 
     return std::min({d1, d2, d3});
 }
