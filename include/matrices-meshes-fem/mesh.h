@@ -193,7 +193,7 @@ private:
     std::vector<std::array<std::size_t, 3>> elements_;                         ///< List of triangular elements.
     std::size_t num_elements_;                                                 ///< Number of elements.
     std::vector<std::vector<std::size_t>> node_to_elements_;                   ///< Node-to-Element mapping. Node is part of the triangular element.
-    std::map<std::pair<int, int>, std::vector<std::size_t>> edge_to_elements_; ///< Edge-to-element mapping. Edge is part or the triangular element.
+    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> edge_to_elements_; ///< Edge-to-element mapping. Edge is part of the triangular element.
     std::vector<std::set<std::size_t>> element_neighbors_;                     ///< Neighboring elements for each element, sharing an edge.
     std::vector<std::set<std::size_t>> node_neighbors_;                        ///< Neighboring nodes for each node, including itself.
 };
