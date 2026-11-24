@@ -12,15 +12,8 @@
 
 //-----------------------------------------------------------------------------
 Graph::Graph(const std::vector<std::set<std::size_t>> &node_to_neighbors)
-    : adj_(node_to_neighbors.size())
+    : adj_(node_to_neighbors)
 {
-    for (std::size_t v = 0; v < node_to_neighbors.size(); ++v)
-    {
-        for (std::size_t w : node_to_neighbors[v])
-        {
-            adj_[v].insert(w);
-        }
-    }
 }
 
 //-----------------------------------------------------------------------------
