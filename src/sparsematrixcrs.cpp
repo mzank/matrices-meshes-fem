@@ -48,15 +48,14 @@ SparseMatrixCRS::SparseMatrixCRS(std::size_t rows,
 
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(const WeightedGraph &graph)
-    : num_rows_(0), num_cols_(0), values_(), col_idx_(), row_ptr_()
+    : num_rows_(graph.getAdjacency().size()),
+      num_cols_(num_rows_), // Assuming square matrix
+      values_(),
+      col_idx_(),
+      row_ptr_(num_rows_ + 1, 0)
 {
     const auto &adjacency = graph.getAdjacency();
     const auto &weights = graph.getWeights();
-
-    num_rows_ = adjacency.size();
-    num_cols_ = adjacency.size(); // Assuming square matrix
-
-    row_ptr_.resize(num_rows_ + 1, 0);
 
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
