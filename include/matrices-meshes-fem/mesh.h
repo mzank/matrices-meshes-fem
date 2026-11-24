@@ -82,17 +82,17 @@ public:
 
     /**
      * @brief Reads node coordinates from a file.
-     * @param filename Path to the node file.
+     * @param node_file Path to the node file.
      * @return True if successful, false otherwise.
      */
-    bool readNodes(const std::string &filename);
+    bool readNodes(const std::string &node_file);
 
     /**
      * @brief Reads element connectivity from a file.
-     * @param filename Path to the element file.
+     * @param element_file Path to the element file.
      * @return True if successful, false otherwise.
      */
-    bool readElements(const std::string &filename);
+    bool readElements(const std::string &element_file);
 
     /**
      * @brief Builds a mapping from nodes to the elements they belong to.

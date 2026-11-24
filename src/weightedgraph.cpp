@@ -12,9 +12,9 @@
 #include <utility>
 
 //-----------------------------------------------------------------------------
-WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &nodeToNeighbors,
+WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_neighbors,
                              const std::vector<Coord> &coords)
-    : Graph(nodeToNeighbors), weights_()
+    : Graph(node_to_neighbors), weights_()
 {
     for (std::size_t v = 0; v < adj_.size(); ++v)
     {

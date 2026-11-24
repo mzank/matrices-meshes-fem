@@ -40,11 +40,11 @@ public:
      * non-reflexive edge weights from that node:
      *   \f$ w_{vv} = -\sum_{w \ne v} w_{vw} \f$
      *
-     * @param nodeToNeighbors A vector where each index represents a node, and the set contains
+     * @param node_to_neighbors A vector where each index represents a node, and the set contains
      *        indices of its neighboring nodes (outgoing edges).
      * @param coords A vector of coordinates, where coords[i] corresponds to the position of node i.
      */
-    WeightedGraph(const std::vector<std::set<std::size_t>> &nodeToNeighbors,
+    WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_neighbors,
                   const std::vector<Coord> &coords);
 
     /**

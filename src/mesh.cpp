@@ -63,12 +63,12 @@ const std::vector<std::set<std::size_t>> &Mesh::getNodeNeighbors() const
 }
 
 //------------------------------------------------------------------------------
-bool Mesh::readNodes(const std::string &filename)
+bool Mesh::readNodes(const std::string &node_file)
 {
-    std::ifstream coords_in(filename);
+    std::ifstream coords_in(node_file);
     if (!coords_in)
     {
-        std::cerr << "Failed to open coords file: " << filename << "\n";
+        std::cerr << "Failed to open coords file: " << node_file << "\n";
         return false;
     }
 
@@ -93,12 +93,12 @@ bool Mesh::readNodes(const std::string &filename)
 }
 
 //------------------------------------------------------------------------------
-bool Mesh::readElements(const std::string &filename)
+bool Mesh::readElements(const std::string &element_file)
 {
-    std::ifstream elem_in(filename);
+    std::ifstream elem_in(element_file);
     if (!elem_in)
     {
-        std::cerr << "Failed to open elements file: " << filename << "\n";
+        std::cerr << "Failed to open elements file: " << element_file << "\n";
         return false;
     }
 
