@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -307,23 +308,17 @@ double Mesh::pointToTriangleDistance(const Coord &p, const Coord &a, const Coord
 //------------------------------------------------------------------------------
 std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(const Coord &p) const
 {
-    std::size_t e_min = 0;
-    double dist_min = std::numeric_limits<double>::infinity();
-
-    for (std::size_t e = 0; e < num_elements_; ++e)
+    const auto distance = [this, &p](const auto &element)
     {
-        const Coord &a = nodes_[elements_[e][0]];
-        const Coord &b = nodes_[elements_[e][1]];
-        const Coord &c = nodes_[elements_[e][2]];
+        return pointToTriangleDistance(p,
+                                       nodes_[element[0]],
+                                       nodes_[element[1]],
+                                       nodes_[element[2]]);
+    };
 
-        double dist = pointToTriangleDistance(p, a, b, c);
+    const auto it = std::ranges::min_element(elements_, {}, distance);
+    if (it == elements_.end())
+        return {0, std::numeric_limits<double>::infinity()};
 
-        if (dist < dist_min)
-        {
-            dist_min = dist;
-            e_min = e;
-        }
-    }
-
-    return std::make_pair(e_min, dist_min);
+    return {static_cast<std::size_t>(it - elements_.begin()), distance(*it)};
 }
