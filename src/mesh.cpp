@@ -17,7 +17,7 @@
 #include <utility>
 
 //------------------------------------------------------------------------------
-Mesh::Mesh(const std::string &node_file, const std::string &element_file)
+Mesh::Mesh(std::string const &node_file, std::string const &element_file)
     : nodes_(), num_nodes_(0), elements_(), num_elements_(0), node_to_elements_(), edge_to_elements_(), element_neighbors_(), node_neighbors_()
 {
     if (!readNodes(node_file))
@@ -35,7 +35,7 @@ Mesh::Mesh(const std::string &node_file, const std::string &element_file)
 }
 
 //------------------------------------------------------------------------------
-const std::vector<Coord> &Mesh::getNodes() const
+std::vector<Coord> const &Mesh::getNodes() const
 {
     return nodes_;
 }
@@ -47,7 +47,7 @@ std::size_t Mesh::getNumNodes() const
 }
 
 //------------------------------------------------------------------------------
-const std::vector<std::array<std::size_t, 3>> &Mesh::getElements() const
+std::vector<std::array<std::size_t, 3>> const &Mesh::getElements() const
 {
     return elements_;
 }
@@ -59,13 +59,13 @@ std::size_t Mesh::getNumElements() const
 }
 
 //------------------------------------------------------------------------------
-const std::vector<std::set<std::size_t>> &Mesh::getNodeNeighbors() const
+std::vector<std::set<std::size_t>> const &Mesh::getNodeNeighbors() const
 {
     return node_neighbors_;
 }
 
 //------------------------------------------------------------------------------
-bool Mesh::readNodes(const std::string &node_file)
+bool Mesh::readNodes(std::string const &node_file)
 {
     std::ifstream coords_in(node_file);
     if (!coords_in)
@@ -95,7 +95,7 @@ bool Mesh::readNodes(const std::string &node_file)
 }
 
 //------------------------------------------------------------------------------
-bool Mesh::readElements(const std::string &element_file)
+bool Mesh::readElements(std::string const &element_file)
 {
     std::ifstream elem_in(element_file);
     if (!elem_in)
@@ -182,10 +182,10 @@ void Mesh::edgeToElements()
 void Mesh::printEdgeToElements() const
 {
     std::cout << "\nEdge-to-elements mapping:";
-    for (const auto &entry : edge_to_elements_)
+    for (auto const &entry : edge_to_elements_)
     {
-        const auto &edge = entry.first;
-        const auto &elements = entry.second;
+        auto const &edge = entry.first;
+        auto const &elements = entry.second;
 
         std::cout << "\nEdge (" << edge.first << ", " << edge.second << "): [";
         for (std::size_t i = 0; i < elements.size(); ++i)
@@ -264,7 +264,7 @@ void Mesh::printNodeNeighbors() const
 }
 
 //------------------------------------------------------------------------------
-bool Mesh::pointInTriangle(const Coord &p, const Coord &a, const Coord &b, const Coord &c) const
+bool Mesh::pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const
 {
     // calculate cross products bp x ba, cp x cb, ap x ac
     double d1 = (p.x_ - b.x_) * (a.y_ - b.y_) - (p.y_ - b.y_) * (a.x_ - b.x_);
@@ -280,7 +280,7 @@ bool Mesh::pointInTriangle(const Coord &p, const Coord &a, const Coord &b, const
 }
 
 //------------------------------------------------------------------------------
-double Mesh::pointToSegmentDistance(const Coord &p, const Coord &a, const Coord &b) const
+double Mesh::pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const
 {
     Coord ab{b.x_ - a.x_, b.y_ - a.y_};
     Coord ap{p.x_ - a.x_, p.y_ - a.y_};
@@ -293,7 +293,7 @@ double Mesh::pointToSegmentDistance(const Coord &p, const Coord &a, const Coord 
 }
 
 //------------------------------------------------------------------------------
-double Mesh::pointToTriangleDistance(const Coord &p, const Coord &a, const Coord &b, const Coord &c) const
+double Mesh::pointToTriangleDistance(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const
 {
     if (pointInTriangle(p, a, b, c))
         return 0.0;
@@ -306,9 +306,9 @@ double Mesh::pointToTriangleDistance(const Coord &p, const Coord &a, const Coord
 }
 
 //------------------------------------------------------------------------------
-std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(const Coord &p) const
+std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(Coord const &p) const
 {
-    const auto distance = [this, &p](const auto &element)
+    auto const distance = [this, &p](auto const &element)
     {
         return pointToTriangleDistance(p,
                                        nodes_[element[0]],
@@ -316,7 +316,7 @@ std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(const Co
                                        nodes_[element[2]]);
     };
 
-    const auto it = std::ranges::min_element(elements_, {}, distance);
+    auto const it = std::ranges::min_element(elements_, {}, distance);
     if (it == elements_.end())
         return {0, std::numeric_limits<double>::infinity()};
 

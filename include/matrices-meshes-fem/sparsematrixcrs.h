@@ -65,7 +65,7 @@ public:
      */
     SparseMatrixCRS(std::size_t rows,
                     std::size_t cols,
-                    const std::vector<std::vector<std::pair<std::size_t, double>>> &entries_per_row);
+                    std::vector<std::vector<std::pair<std::size_t, double>>> const &entries_per_row);
 
     /**
      * @brief Constructs a sparse matrix from a weighted graph.
@@ -78,7 +78,7 @@ public:
      * @note The matrix is assumed to be square: `num_rows_ == num_cols_`,
      * equal to the number of nodes in the graph.
      */
-    SparseMatrixCRS(const WeightedGraph &graph);
+    SparseMatrixCRS(WeightedGraph const &graph);
 
     /**
      * @brief Prints the matrix.
@@ -93,7 +93,7 @@ public:
      *
      * @throws std::runtime_error if the size of vector x does not match the number of matrix columns.
      */
-    std::vector<double> multiply(const std::vector<double> &x) const;
+    std::vector<double> multiply(std::vector<double> const &x) const;
 
     /**
      * @brief Writes the matrix to an ASCII file.
@@ -102,7 +102,7 @@ public:
      *
      * @throws std::runtime_error if the file cannot be opened for writing.
      */
-    void writeASCII(const std::string &filename) const;
+    void writeASCII(std::string const &filename) const;
 
     /**
      * @brief Reads the matrix from an ASCII file.
@@ -119,7 +119,7 @@ public:
      *
      * @throws std::runtime_error if the file cannot be opened for reading.
      */
-    void readASCII(const std::string &filename);
+    void readASCII(std::string const &filename);
 
     /**
      * @brief Writes the matrix to a binary file.
@@ -128,7 +128,7 @@ public:
      *
      * @throws std::runtime_error if the file cannot be opened for writing.
      */
-    void writeBinary(const std::string &filename) const;
+    void writeBinary(std::string const &filename) const;
 
     /**
      * @brief Reads the matrix from a binary file.
@@ -145,7 +145,7 @@ public:
      *
      * @throws std::runtime_error if the file cannot be opened for reading.
      */
-    void readBinary(const std::string &filename);
+    void readBinary(std::string const &filename);
 
     /**
      * @brief Prints the sparsity pattern of the matrix

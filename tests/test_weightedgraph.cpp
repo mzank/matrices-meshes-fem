@@ -14,26 +14,26 @@
 namespace
 {
     // Node 0 -> 1 has distance 1 (weight 1); node 0 -> 2 has distance 2 (weight 0.25).
-    const std::vector<std::set<std::size_t>> &sampleNeighbors()
+    std::vector<std::set<std::size_t>> const &sampleNeighbors()
     {
-        static const std::vector<std::set<std::size_t>> neighbors{
+        static std::vector<std::set<std::size_t>> const neighbors{
             {0, 1, 2},
             {0, 1},
             {0}};
         return neighbors;
     }
 
-    const std::vector<Coord> &sampleCoords()
+    std::vector<Coord> const &sampleCoords()
     {
-        static const std::vector<Coord> coords{{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}};
+        static std::vector<Coord> const coords{{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}};
         return coords;
     }
 } // namespace
 
 TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal weights", "[weightedgraph]")
 {
-    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
-    const auto &weights = graph.getWeights();
+    WeightedGraph const graph(sampleNeighbors(), sampleCoords());
+    auto const &weights = graph.getWeights();
 
     REQUIRE(weights.size() == 7);
 
@@ -49,7 +49,7 @@ TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal wei
 
 TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weightedgraph]")
 {
-    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
+    WeightedGraph const graph(sampleNeighbors(), sampleCoords());
 
     REQUIRE(graph.getWeights().count({1, 2}) == 0);
     REQUIRE(graph.getWeights().count({2, 1}) == 0);
@@ -61,9 +61,9 @@ TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weight
 
 TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]")
 {
-    const std::vector<std::set<std::size_t>> neighbors{{}, {0}};
-    const std::vector<Coord> coords{{0.0, 0.0}, {1.0, 0.0}};
-    const WeightedGraph graph(neighbors, coords);
+    std::vector<std::set<std::size_t>> const neighbors{{}, {0}};
+    std::vector<Coord> const coords{{0.0, 0.0}, {1.0, 0.0}};
+    WeightedGraph const graph(neighbors, coords);
 
     REQUIRE(graph.getWeights().size() == 3);
     REQUIRE(graph.getWeights().at({0, 0}) == Catch::Approx(0.0));
@@ -73,9 +73,9 @@ TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]")
 
 TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
 {
-    const std::vector<std::set<std::size_t>> neighbors;
-    const std::vector<Coord> coords;
-    const WeightedGraph graph(neighbors, coords);
+    std::vector<std::set<std::size_t>> const neighbors;
+    std::vector<Coord> const coords;
+    WeightedGraph const graph(neighbors, coords);
 
     REQUIRE(graph.getAdjacency().empty());
     REQUIRE(graph.getWeights().empty());
@@ -83,14 +83,14 @@ TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
 
 TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
 {
-    const WeightedGraph graph(sampleNeighbors(), sampleCoords());
+    WeightedGraph const graph(sampleNeighbors(), sampleCoords());
 
     std::ostringstream output;
     std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
     graph.print();
     std::cout.rdbuf(old_buffer);
 
-    const std::string text = output.str();
+    std::string const text = output.str();
     REQUIRE(text.find("Weighted graph edges:") != std::string::npos);
     REQUIRE(text.find("(0, 0) -> -1.25\n") != std::string::npos);
     REQUIRE(text.find("(0, 1) -> 1\n") != std::string::npos);

@@ -11,14 +11,14 @@
 
 TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")
 {
-    const std::vector<std::set<std::size_t>> input{
+    std::vector<std::set<std::size_t>> const input{
         {1, 2},
         {0},
         {},
         {3}};
 
-    const Graph graph(input);
-    const auto &adjacency = graph.getAdjacency();
+    Graph const graph(input);
+    auto const &adjacency = graph.getAdjacency();
 
     REQUIRE(adjacency.size() == 4);
     REQUIRE((adjacency[0] == std::set<std::size_t>{1, 2}));
@@ -34,7 +34,7 @@ TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")
 TEST_CASE("Graph owns its adjacency list", "[graph]")
 {
     std::vector<std::set<std::size_t>> input{{1}, {}};
-    const Graph graph(input);
+    Graph const graph(input);
 
     input[0].insert(2);
     input.emplace_back();
@@ -46,23 +46,23 @@ TEST_CASE("Graph owns its adjacency list", "[graph]")
 
 TEST_CASE("Graph handles an empty node list", "[graph]")
 {
-    const std::vector<std::set<std::size_t>> empty;
-    const Graph graph(empty);
+    std::vector<std::set<std::size_t>> const empty;
+    Graph const graph(empty);
 
     REQUIRE(graph.getAdjacency().empty());
 }
 
 TEST_CASE("Graph prints its adjacency list", "[graph]")
 {
-    const std::vector<std::set<std::size_t>> input{{1, 2}, {0}, {}, {3}};
-    const Graph graph(input);
+    std::vector<std::set<std::size_t>> const input{{1, 2}, {0}, {}, {3}};
+    Graph const graph(input);
 
     std::ostringstream output;
     std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
     graph.print();
     std::cout.rdbuf(old_buffer);
 
-    const std::string text = output.str();
+    std::string const text = output.str();
     REQUIRE(text.find("Graph adjacency list:") != std::string::npos);
     REQUIRE(text.find("Node 0: 1 2") != std::string::npos);
     REQUIRE(text.find("Node 1: 0") != std::string::npos);

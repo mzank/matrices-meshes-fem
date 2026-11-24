@@ -12,7 +12,7 @@
 
 namespace
 {
-    std::string dataPath(const std::string &filename)
+    std::string dataPath(std::string const &filename)
     {
         return std::string(MMF_TEST_DATA_DIR) + "/" + filename;
     }
@@ -20,7 +20,7 @@ namespace
 
 TEST_CASE("Mesh loads nodes and elements from files", "[mesh]")
 {
-    const Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
+    Mesh const mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
 
     REQUIRE(mesh.getNumNodes() == 16);
     REQUIRE(mesh.getNumElements() == 18);
@@ -42,9 +42,9 @@ TEST_CASE("Mesh loads nodes and elements from files", "[mesh]")
 
 TEST_CASE("Mesh constructor rejects missing files", "[mesh]")
 {
-    const std::string nodes = dataPath("3x3_coords_2d.txt");
-    const std::string elements = dataPath("3x3_elements_2d.txt");
-    const std::string missing = dataPath("does_not_exist.txt");
+    std::string const nodes = dataPath("3x3_coords_2d.txt");
+    std::string const elements = dataPath("3x3_elements_2d.txt");
+    std::string const missing = dataPath("does_not_exist.txt");
 
     SECTION("missing node file")
     {
@@ -59,8 +59,8 @@ TEST_CASE("Mesh constructor rejects missing files", "[mesh]")
 
 TEST_CASE("Mesh node neighbors are symmetric and include self", "[mesh]")
 {
-    const Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
-    const auto &neighbors = mesh.getNodeNeighbors();
+    Mesh const mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
+    auto const &neighbors = mesh.getNodeNeighbors();
 
     REQUIRE(neighbors.size() == mesh.getNumNodes());
 
@@ -73,16 +73,16 @@ TEST_CASE("Mesh node neighbors are symmetric and include self", "[mesh]")
         }
     }
 
-    const std::set<std::size_t> expected{0, 3, 9, 13, 15};
+    std::set<std::size_t> const expected{0, 3, 9, 13, 15};
     REQUIRE(neighbors[0] == expected);
 }
 
 TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]")
 {
-    const Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
-    const Coord a{0.0, 0.0};
-    const Coord b{1.0, 0.0};
-    const Coord c{0.0, 1.0};
+    Mesh const mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
+    Coord const a{0.0, 0.0};
+    Coord const b{1.0, 0.0};
+    Coord const c{0.0, 1.0};
 
     SECTION("pointInTriangle detects inside and outside points")
     {
@@ -109,16 +109,16 @@ TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]")
 
     SECTION("findElementShortestDistanceToPoint locates the closest element")
     {
-        const Coord node0 = mesh.getNodes().front();
-        const auto closest = mesh.findElementShortestDistanceToPoint(node0);
+        Coord const node0 = mesh.getNodes().front();
+        auto const closest = mesh.findElementShortestDistanceToPoint(node0);
 
         REQUIRE(closest.second == Catch::Approx(0.0));
         REQUIRE(closest.first < mesh.getNumElements());
 
-        const auto &element = mesh.getElements()[closest.first];
+        auto const &element = mesh.getElements()[closest.first];
         REQUIRE((element[0] == 0 || element[1] == 0 || element[2] == 0));
 
-        const auto far = mesh.findElementShortestDistanceToPoint({-1.0, -2.0});
+        auto const far = mesh.findElementShortestDistanceToPoint({-1.0, -2.0});
         REQUIRE(far.first < mesh.getNumElements());
         REQUIRE(far.second > 0.0);
     }

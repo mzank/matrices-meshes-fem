@@ -27,7 +27,7 @@ SparseMatrixCRS::SparseMatrixCRS(std::size_t rows, std::size_t cols)
 SparseMatrixCRS::SparseMatrixCRS(
     std::size_t rows,
     std::size_t cols,
-    const std::vector<std::vector<std::pair<std::size_t, double>>> &entries_per_row)
+    std::vector<std::vector<std::pair<std::size_t, double>>> const &entries_per_row)
     : num_rows_(rows),
       num_cols_(cols),
       values_(),
@@ -41,11 +41,11 @@ SparseMatrixCRS::SparseMatrixCRS(
     }
 
     // Calculate the total number of non-zero elements.
-    const auto nnz = std::accumulate(
+    auto const nnz = std::accumulate(
         entries_per_row.begin(),
         entries_per_row.end(),
         std::size_t{0},
-        [](std::size_t sum, const auto &row)
+        [](std::size_t sum, auto const &row)
         {
             return sum + row.size();
         });
@@ -56,9 +56,9 @@ SparseMatrixCRS::SparseMatrixCRS(
     row_ptr_.reserve(rows + 1);
 
     // Process each row.
-    for (const auto &row : entries_per_row)
+    for (auto const &row : entries_per_row)
     {
-        for (const auto &[col, value] : row)
+        for (auto const &[col, value] : row)
         {
             // Validate column index.
             if (col >= cols)
@@ -79,22 +79,22 @@ SparseMatrixCRS::SparseMatrixCRS(
 }
 
 //-----------------------------------------------------------------------------
-SparseMatrixCRS::SparseMatrixCRS(const WeightedGraph &graph)
+SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const &graph)
     : num_rows_(graph.getAdjacency().size()),
       num_cols_(num_rows_), // Assuming square matrix
       values_(),
       col_idx_(),
       row_ptr_{0} // initial row offset
 {
-    const auto &adjacency = graph.getAdjacency();
-    const auto &weights = graph.getWeights();
+    auto const &adjacency = graph.getAdjacency();
+    auto const &weights = graph.getWeights();
 
     // Calculate the total number of non-zero elements.
-    const auto nnz = std::accumulate(
+    auto const nnz = std::accumulate(
         adjacency.begin(),
         adjacency.end(),
         std::size_t{0},
-        [](std::size_t sum, const auto &neighbors)
+        [](std::size_t sum, auto const &neighbors)
         {
             return sum + neighbors.size();
         });
@@ -107,7 +107,7 @@ SparseMatrixCRS::SparseMatrixCRS(const WeightedGraph &graph)
     // Process each row.
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        for (const std::size_t col : adjacency.at(row))
+        for (std::size_t const col : adjacency.at(row))
         {
             // Validate column index.
             if (col >= num_cols_)
@@ -143,7 +143,7 @@ void SparseMatrixCRS::print() const
 }
 
 //-----------------------------------------------------------------------------
-std::vector<double> SparseMatrixCRS::multiply(const std::vector<double> &x) const
+std::vector<double> SparseMatrixCRS::multiply(std::vector<double> const &x) const
 {
     if (x.size() != num_cols_)
         throw std::runtime_error("Matrix size and vector size do not fit.");
@@ -164,7 +164,7 @@ std::vector<double> SparseMatrixCRS::multiply(const std::vector<double> &x) cons
 }
 
 //-----------------------------------------------------------------------------
-void SparseMatrixCRS::writeASCII(const std::string &filename) const
+void SparseMatrixCRS::writeASCII(std::string const &filename) const
 {
     std::ofstream f_out(filename);
     if (!f_out)
@@ -187,7 +187,7 @@ void SparseMatrixCRS::writeASCII(const std::string &filename) const
 }
 
 //-----------------------------------------------------------------------------
-void SparseMatrixCRS::readASCII(const std::string &filename)
+void SparseMatrixCRS::readASCII(std::string const &filename)
 {
     std::ifstream f_in(filename);
     if (!f_in)
@@ -209,24 +209,24 @@ void SparseMatrixCRS::readASCII(const std::string &filename)
 }
 
 //-----------------------------------------------------------------------------
-void SparseMatrixCRS::writeBinary(const std::string &filename) const
+void SparseMatrixCRS::writeBinary(std::string const &filename) const
 {
     std::ofstream f_out(filename, std::ios::binary);
     if (!f_out)
         throw std::runtime_error("Cannot open file for writing.");
 
     std::size_t nnz = values_.size();
-    f_out.write(reinterpret_cast<const char *>(&num_rows_), sizeof(std::size_t));
-    f_out.write(reinterpret_cast<const char *>(&num_cols_), sizeof(std::size_t));
-    f_out.write(reinterpret_cast<const char *>(&nnz), sizeof(std::size_t));
+    f_out.write(reinterpret_cast<char const *>(&num_rows_), sizeof(std::size_t));
+    f_out.write(reinterpret_cast<char const *>(&num_cols_), sizeof(std::size_t));
+    f_out.write(reinterpret_cast<char const *>(&nnz), sizeof(std::size_t));
 
-    f_out.write(reinterpret_cast<const char *>(values_.data()), nnz * sizeof(double));
-    f_out.write(reinterpret_cast<const char *>(col_idx_.data()), nnz * sizeof(std::size_t));
-    f_out.write(reinterpret_cast<const char *>(row_ptr_.data()), (num_rows_ + 1) * sizeof(std::size_t));
+    f_out.write(reinterpret_cast<char const *>(values_.data()), nnz * sizeof(double));
+    f_out.write(reinterpret_cast<char const *>(col_idx_.data()), nnz * sizeof(std::size_t));
+    f_out.write(reinterpret_cast<char const *>(row_ptr_.data()), (num_rows_ + 1) * sizeof(std::size_t));
 }
 
 //-----------------------------------------------------------------------------
-void SparseMatrixCRS::readBinary(const std::string &filename)
+void SparseMatrixCRS::readBinary(std::string const &filename)
 {
     std::ifstream f_in(filename, std::ios::binary);
     if (!f_in)

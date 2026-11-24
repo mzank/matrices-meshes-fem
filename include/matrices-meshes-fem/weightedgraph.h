@@ -44,13 +44,13 @@ public:
      *        indices of its neighboring nodes (outgoing edges).
      * @param coords A vector of coordinates, where coords[i] corresponds to the position of node i.
      */
-    WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_neighbors,
-                  const std::vector<Coord> &coords);
+    WeightedGraph(std::vector<std::set<std::size_t>> const &node_to_neighbors,
+                  std::vector<Coord> const &coords);
 
     /**
      * @brief Returns the edge-to-weight mapping.
      */
-    const std::map<std::pair<std::size_t, std::size_t>, double> &getWeights() const;
+    std::map<std::pair<std::size_t, std::size_t>, double> const &getWeights() const;
 
     /**
      * @brief Prints the edge-to-weight mapping.

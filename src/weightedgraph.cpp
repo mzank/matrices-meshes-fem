@@ -15,23 +15,23 @@
 #include <utility>
 
 //-----------------------------------------------------------------------------
-WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_neighbors,
-                             const std::vector<Coord> &coords)
+WeightedGraph::WeightedGraph(std::vector<std::set<std::size_t>> const &node_to_neighbors,
+                             std::vector<Coord> const &coords)
     : Graph(node_to_neighbors), weights_()
 {
     std::ranges::for_each(std::views::iota(std::size_t{0}, adj_.size()),
                           [this, &coords](std::size_t v)
                           {
-                              const double sum_weights = std::accumulate(
+                              double const sum_weights = std::accumulate(
                                   adj_[v].begin(), adj_[v].end(), 0.0,
                                   [this, &coords, v](double sum, std::size_t w)
                                   {
                                       if (v == w)
                                           return sum;
 
-                                      const double dx = coords[v].x_ - coords[w].x_;
-                                      const double dy = coords[v].y_ - coords[w].y_;
-                                      const double weight = 1.0 / (dx * dx + dy * dy);
+                                      double const dx = coords[v].x_ - coords[w].x_;
+                                      double const dy = coords[v].y_ - coords[w].y_;
+                                      double const weight = 1.0 / (dx * dx + dy * dy);
 
                                       weights_[{v, w}] = weight;
                                       return sum + weight;
@@ -42,7 +42,7 @@ WeightedGraph::WeightedGraph(const std::vector<std::set<std::size_t>> &node_to_n
 }
 
 //-----------------------------------------------------------------------------
-const std::map<std::pair<std::size_t, std::size_t>, double> &WeightedGraph::getWeights() const
+std::map<std::pair<std::size_t, std::size_t>, double> const &WeightedGraph::getWeights() const
 {
     return weights_;
 }
@@ -51,7 +51,7 @@ const std::map<std::pair<std::size_t, std::size_t>, double> &WeightedGraph::getW
 void WeightedGraph::print() const
 {
     std::cout << "Weighted graph edges:\n";
-    for (const auto &[edge, weight] : weights_)
+    for (auto const &[edge, weight] : weights_)
     {
         std::cout << "(" << edge.first << ", " << edge.second << ") -> " << weight << "\n";
     }

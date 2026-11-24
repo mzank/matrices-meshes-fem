@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
                                                {-0.2, 0.3},
                                                {-1.0, -2.0}}};
 
-        for (const Coord &p : points)
+        for (Coord const &p : points)
         {
             std::pair<std::size_t, double> element_distance_min = mesh.findElementShortestDistanceToPoint(p);
             std::cout << "(" << p.x_ << "," << p.y_ << "): "
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
             std::cout << "]";
             std::cout << "\nExpected result:  [-16.18 -17.34 -19 0.9 ]\n";
         }
-        catch (const std::runtime_error &e)
+        catch (std::runtime_error const &e)
         {
             std::cerr << "Error matrix-vector multiplication: " << e.what() << "\n";
         }
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
             matrix_test_ascii.readASCII("matrix_test.txt");
             matrix_test_ascii.print();
         }
-        catch (const std::runtime_error &e)
+        catch (std::runtime_error const &e)
         {
             std::cerr << "Error writing/reading ASCII file matrix_test.txt: " << e.what() << "\n";
         }
@@ -179,13 +179,13 @@ int main(int argc, char *argv[])
             matrix_test_binary.readBinary("matrix_test.bin");
             matrix_test_binary.print();
         }
-        catch (const std::runtime_error &e)
+        catch (std::runtime_error const &e)
         {
             std::cerr << "Error writing/reading binary file matrix_test.bin: " << e.what() << "\n";
         }
         std::cout << "-------------------------------------------------------------------------------\n";
     }
-    catch (const std::runtime_error &e)
+    catch (std::runtime_error const &e)
     {
         std::cerr << "Error creating mesh: " << e.what() << "\n";
         return 1;

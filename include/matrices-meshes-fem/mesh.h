@@ -46,13 +46,13 @@ public:
      *
      * @throws std::runtime_error if reading from either the node or element file fails.
      */
-    Mesh(const std::string &node_file, const std::string &element_file);
+    Mesh(std::string const &node_file, std::string const &element_file);
 
     /**
      * @brief Returns the list of node coordinates.
      * @return Constant reference to a vector of coordinates Coord.
      */
-    const std::vector<Coord> &getNodes() const;
+    std::vector<Coord> const &getNodes() const;
 
     /**
      * @brief Returns the number of nodes of the mesh.
@@ -65,7 +65,7 @@ public:
      * Each element is represented as an array of 3 node indices.
      * @return Constant reference to a vector of triangular elements.
      */
-    const std::vector<std::array<std::size_t, 3>> &getElements() const;
+    std::vector<std::array<std::size_t, 3>> const &getElements() const;
 
     /**
      * @brief Returns the number of elements of the mesh.
@@ -78,21 +78,21 @@ public:
      * in sorted order.
      * @return Constant reference to a vector of sets, each set containing indices of neighboring nodes.
      */
-    const std::vector<std::set<std::size_t>> &getNodeNeighbors() const;
+    std::vector<std::set<std::size_t>> const &getNodeNeighbors() const;
 
     /**
      * @brief Reads node coordinates from a file.
      * @param node_file Path to the node file.
      * @return True if successful, false otherwise.
      */
-    bool readNodes(const std::string &node_file);
+    bool readNodes(std::string const &node_file);
 
     /**
      * @brief Reads element connectivity from a file.
      * @param element_file Path to the element file.
      * @return True if successful, false otherwise.
      */
-    bool readElements(const std::string &element_file);
+    bool readElements(std::string const &element_file);
 
     /**
      * @brief Builds a mapping from nodes to the elements they belong to.
@@ -154,7 +154,7 @@ public:
      * @param c Coordinates Coord of the third node of the triangle.
      * @return True if the point is inside the triangle, false otherwise.
      */
-    bool pointInTriangle(const Coord &p, const Coord &a, const Coord &b, const Coord &c) const;
+    bool pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const;
 
     /**
      * @brief Computes the shortest distance from a point to a line segment.
@@ -168,7 +168,7 @@ public:
      * @param b Coordinates Coord of the second endpoint of the segment.
      * @return Distance from the point to the segment.
      */
-    double pointToSegmentDistance(const Coord &p, const Coord &a, const Coord &b) const;
+    double pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const;
 
     /**
      * @brief Computes the shortest distance from a point to a triangle.
@@ -178,14 +178,14 @@ public:
      * @param c Coordinates Coord of the third node of the triangle.
      * @return Distance from the point to the triangle.
      */
-    double pointToTriangleDistance(const Coord &p, const Coord &a, const Coord &b, const Coord &c) const;
+    double pointToTriangleDistance(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const;
 
     /**
      * @brief Finds the triangular element with the shortest distance to a given point.
      * @param p The point.
      * @return A pair containing the index of the closest element and the distance.
      */
-    std::pair<std::size_t, double> findElementShortestDistanceToPoint(const Coord &p) const;
+    std::pair<std::size_t, double> findElementShortestDistanceToPoint(Coord const &p) const;
 
 private:
     std::vector<Coord> nodes_;                                                 ///< List of node coordinates.

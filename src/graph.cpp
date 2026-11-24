@@ -11,13 +11,13 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-Graph::Graph(const std::vector<std::set<std::size_t>> &node_to_neighbors)
+Graph::Graph(std::vector<std::set<std::size_t>> const &node_to_neighbors)
     : adj_(node_to_neighbors)
 {
 }
 
 //-----------------------------------------------------------------------------
-const std::vector<std::set<std::size_t>> &Graph::getAdjacency() const
+std::vector<std::set<std::size_t>> const &Graph::getAdjacency() const
 {
     return adj_;
 }

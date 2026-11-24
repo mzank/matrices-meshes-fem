@@ -30,14 +30,14 @@ public:
      *        and the corresponding set contains indices of its neighboring nodes.
      *        Each neighbor represents a directed edge from the current node to that neighbor.
      */
-    Graph(const std::vector<std::set<std::size_t>> &node_to_neighbors);
+    Graph(std::vector<std::set<std::size_t>> const &node_to_neighbors);
 
     /**
      * @brief Returns the adjacency list of the graph.
      *
      * @return A const reference to the adjacency list.
      */
-    const std::vector<std::set<std::size_t>> &getAdjacency() const;
+    std::vector<std::set<std::size_t>> const &getAdjacency() const;
 
     /**
      * @brief Prints the adjacency list.
