@@ -137,7 +137,7 @@ void Mesh::nodeToElements()
     node_to_elements_.resize(num_nodes_);
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
-        for (std::size_t n = 0; n < 3; n++)
+        for (std::size_t n = 0; n < 3; ++n)
         {
             std::size_t node = elements_[e][n];
             node_to_elements_[node].push_back(e);
@@ -165,7 +165,7 @@ void Mesh::edgeToElements()
     {
         auto &nodes_el = elements_[e];
         // Edges: (v0,v1), (v1,v2), (v2,v0)
-        for (std::size_t i = 0; i < 3; i++)
+        for (std::size_t i = 0; i < 3; ++i)
         {
             std::size_t a = nodes_el[i];
             std::size_t b = nodes_el[(i + 1) % 3];
@@ -239,7 +239,7 @@ void Mesh::nodeNeighbors()
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
         auto &nodes_el = elements_[e];
-        for (std::size_t i = 0; i < 3; i++)
+        for (std::size_t i = 0; i < 3; ++i)
         {
             std::size_t n1 = nodes_el[i];
             std::size_t n2 = nodes_el[(i + 1) % 3];
