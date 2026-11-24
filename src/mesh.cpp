@@ -126,8 +126,8 @@ bool Mesh::readElements(const std::string &element_file)
 void Mesh::printSummary() const
 {
     std::cout << "Mesh Summary:\n";
-    std::cout << "Number of nodes: " << nodes_.size() << "\n";
-    std::cout << "Number of elements: " << elements_.size() << "\n";
+    std::cout << "Number of nodes: " << num_nodes_ << "\n";
+    std::cout << "Number of elements: " << num_elements_ << "\n";
 }
 
 //------------------------------------------------------------------------------
