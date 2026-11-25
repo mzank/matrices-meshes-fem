@@ -77,6 +77,9 @@ public:
      *
      * @note The matrix is assumed to be square: `num_rows_ == num_cols_`,
      * equal to the number of nodes in the graph.
+     *
+     * @note Diagonal weights are always included, even for nodes without a self-edge.
+     * The columns within each row are sorted.
      */
     SparseMatrixCRS(WeightedGraph const &graph);
 

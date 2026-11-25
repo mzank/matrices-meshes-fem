@@ -105,8 +105,23 @@ TEST_CASE("SparseMatrixCRS builds a square matrix from a weighted graph", "[spar
     SparseMatrixCRS const matrix(sampleWeightedGraph());
     std::vector<double> const x{1.0, 2.0, 4.0};
 
-    // Only edges listed in the adjacency become nonzeros; node 2 has no self-edge there.
-    requireEqual(matrix.multiply(x), {1.75, -1.0, 0.25});
+    // Diagonal weights are included even for node 2, which has no self-edge.
+    requireEqual(matrix.multiply(x), {1.75, -1.0, -0.75});
+}
+
+TEST_CASE("SparseMatrixCRS from WeightedGraph includes all diagonal weights", "[sparsematrixcrs]")
+{
+    SparseMatrixCRS const matrix(sampleWeightedGraph());
+
+    std::ostringstream output;
+    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    matrix.print();
+    std::cout.rdbuf(old_buffer);
+
+    std::string const text = output.str();
+    REQUIRE(text.find("row 0: (col 0: -1.25) (col 1: 1) (col 2: 0.25)") != std::string::npos);
+    REQUIRE(text.find("row 1: (col 0: 1) (col 1: -1)") != std::string::npos);
+    REQUIRE(text.find("row 2: (col 0: 0.25) (col 2: -0.25)") != std::string::npos);
 }
 
 TEST_CASE("SparseMatrixCRS round-trips through ASCII", "[sparsematrixcrs]")

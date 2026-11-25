@@ -15,6 +15,7 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -90,15 +91,15 @@ SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const &graph)
     auto const &adjacency = graph.getAdjacency();
     auto const &weights = graph.getWeights();
 
-    // Calculate the total number of non-zero elements.
-    auto const nnz = std::accumulate(
-        adjacency.begin(),
-        adjacency.end(),
-        std::size_t{0},
-        [](std::size_t sum, auto const &neighbors)
-        {
-            return sum + neighbors.size();
-        });
+    // Calculate the total number of non-zero elements, including every diagonal weight
+    // even when the graph has no self-edge for that node.
+    std::size_t nnz = 0;
+    for (std::size_t row = 0; row < num_rows_; ++row)
+    {
+        nnz += adjacency.at(row).size();
+        if (adjacency.at(row).count(row) == 0)
+            ++nnz;
+    }
 
     // Reserve memory to avoid unnecessary reallocations.
     values_.reserve(nnz);
@@ -108,7 +109,10 @@ SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const &graph)
     // Process each row.
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        for (std::size_t const col : adjacency.at(row))
+        std::set<std::size_t> columns = adjacency.at(row);
+        columns.insert(row);
+
+        for (std::size_t const col : columns)
         {
             // Validate column index.
             if (col >= num_cols_)
