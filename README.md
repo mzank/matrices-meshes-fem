@@ -4,6 +4,8 @@
 
 A small C++20 library for working with 2D triangular meshes and graph-based sparse matrices. It reads mesh nodes and elements from files, derives node-neighbor, edge-to-element and element-neighbor mappings, builds directed and distance-weighted graphs, and assembles a sparse matrix in Compressed Row Storage (CRS) format with matrix-vector multiplication and ASCII/binary file I/O.
 
+Binary matrix files store raw `std::size_t` and `double` representations and are intended for same-platform Linux use with a matching ABI/endianness; use ASCII I/O for portable exchange.
+
 ## Requirements
 
 - CMake 3.28 or newer

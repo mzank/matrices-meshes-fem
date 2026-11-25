@@ -137,6 +137,10 @@ public:
     /**
      * @brief Writes the matrix to a binary file.
      *
+     * @note Binary files store the raw in-memory representation of `std::size_t` and `double`.
+     *       They are intended for same-platform use (Linux with a matching ABI/endianness) and
+     *       are not portable across platforms. Use ASCII I/O for portable exchange.
+     *
      * @param filename The file path to write to.
      *
      * @throws std::runtime_error if the file cannot be opened for writing; the message
@@ -158,7 +162,10 @@ public:
      * @param filename The file path to read from.
      *
      * The same CRS invariants as for readASCII() are checked before the matrix is modified.
-     * The binary format is platform-dependent for `std::size_t` and `double` representations.
+     *
+     * @note Binary files store the raw in-memory representation of `std::size_t` and `double`.
+     *       They are intended for same-platform use (Linux with a matching ABI/endianness) and
+     *       are not portable across platforms. Use ASCII I/O for portable exchange.
      *
      * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data;
      *         the message includes `filename`.
