@@ -33,6 +33,13 @@ public:
     Graph(std::vector<std::set<std::size_t>> const &node_to_neighbors);
 
     /**
+     * @brief Destroys the graph.
+     *
+     * Virtual because Graph is intended as a polymorphic base class.
+     */
+    virtual ~Graph() = default;
+
+    /**
      * @brief Returns the adjacency list of the graph.
      *
      * @return A const reference to the adjacency list.
@@ -41,8 +48,10 @@ public:
 
     /**
      * @brief Prints the adjacency list.
+     *
+     * Virtual so derived graph types can provide their own representation.
      */
-    void print() const;
+    virtual void print() const;
 
 protected:
     /**

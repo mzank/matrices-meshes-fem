@@ -58,8 +58,10 @@ public:
 
     /**
      * @brief Prints the edge-to-weight mapping.
+     *
+     * Overrides Graph::print() so calls through a Graph reference use the weighted view.
      */
-    void print() const;
+    void print() const override;
 
 private:
     /**

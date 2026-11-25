@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <catch2/catch_approx.hpp>
@@ -131,4 +132,21 @@ TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
     REQUIRE(text.find("(0, 1) -> 1\n") != std::string::npos);
     REQUIRE(text.find("(0, 2) -> 0.25\n") != std::string::npos);
     REQUIRE(text.find("(2, 2) -> -0.25\n") != std::string::npos);
+}
+
+TEST_CASE("WeightedGraph print is polymorphic", "[weightedgraph]")
+{
+    static_assert(std::has_virtual_destructor_v<Graph>);
+
+    WeightedGraph const graph(sampleNeighbors(), sampleCoords());
+    Graph const &base = graph;
+
+    std::ostringstream output;
+    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    base.print();
+    std::cout.rdbuf(old_buffer);
+
+    std::string const text = output.str();
+    REQUIRE(text.find("Weighted graph edges:") != std::string::npos);
+    REQUIRE(text.find("Graph adjacency list:") == std::string::npos);
 }
