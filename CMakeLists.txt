@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(matrices-meshes-fem
+project(matrices_meshes_fem
     VERSION 0.1.0
     LANGUAGES CXX
 )
@@ -53,7 +53,7 @@ endfunction()
 
 
 # -----------------------------------------------------------------------------
-# matrices-meshes-fem
+# matrices_meshes_fem
 # -----------------------------------------------------------------------------
 add_library(matrices_meshes_fem
     src/mesh.cpp
