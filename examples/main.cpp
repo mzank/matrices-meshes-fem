@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -185,9 +186,9 @@ int main(int argc, char *argv[])
         }
         std::cout << "-------------------------------------------------------------------------------\n";
     }
-    catch (std::runtime_error const &e)
+    catch (std::exception const &e)
     {
-        std::cerr << "Error creating mesh: " << e.what() << "\n";
+        std::cerr << "Error running example: " << e.what() << "\n";
         return 1;
     }
 
