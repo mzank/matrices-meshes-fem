@@ -5,6 +5,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -83,6 +84,26 @@ TEST_CASE("SparseMatrixCRS multiplies rows by the vector", "[sparsematrixcrs]")
     std::vector<double> const x{1.0, 2.0, 3.0};
 
     requireEqual(matrix.multiply(x), {5.0, 0.0, 6.0});
+}
+
+TEST_CASE("SparseMatrixCRS rejects unsorted or duplicate entries", "[sparsematrixcrs]")
+{
+    SECTION("descending column indices")
+    {
+        REQUIRE_THROWS_AS(SparseMatrixCRS(1, 3, {{{2, 1.0}, {0, 2.0}}}),
+                          std::invalid_argument);
+    }
+
+    SECTION("duplicate column indices")
+    {
+        REQUIRE_THROWS_AS(SparseMatrixCRS(1, 3, {{{1, 1.0}, {1, 2.0}}}),
+                          std::invalid_argument);
+    }
+
+    SECTION("column index out of range")
+    {
+        REQUIRE_THROWS_AS(SparseMatrixCRS(1, 2, {{{2, 1.0}}}), std::out_of_range);
+    }
 }
 
 TEST_CASE("SparseMatrixCRS treats an empty matrix as zero", "[sparsematrixcrs]")

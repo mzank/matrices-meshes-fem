@@ -59,6 +59,9 @@ SparseMatrixCRS::SparseMatrixCRS(
     // Process each row.
     for (auto const &row : entries_per_row)
     {
+        std::size_t previous_col{};
+        bool first_entry = true;
+
         for (auto const &[col, value] : row)
         {
             // Validate column index.
@@ -67,8 +70,16 @@ SparseMatrixCRS::SparseMatrixCRS(
                 throw std::out_of_range("Column index out of range");
             }
 
+            // printSparsityPattern() and the CRS format require sorted, unique columns.
+            if (!first_entry && col <= previous_col)
+            {
+                throw std::invalid_argument("Column indices must be strictly increasing");
+            }
+
             values_.push_back(value);
             col_idx_.push_back(col);
+            previous_col = col;
+            first_entry = false;
         }
 
         // Store the end position of the current row.

@@ -45,7 +45,11 @@ public:
      * @param entries_per_row A vector where each element is a vector of (column index, value)
      *        pairs representing the non-zero entries in that row.
      *
-     * @note The column indices must be sorted for each row in entries_per_row.
+     * @note The column indices must be strictly increasing for each row in entries_per_row.
+     *
+     * @throws std::invalid_argument if too many rows are supplied or column indices are not
+     *         strictly increasing.
+     * @throws std::out_of_range if a column index is greater than or equal to `cols`.
      *
      * ### Example:
      * For a matrix:
