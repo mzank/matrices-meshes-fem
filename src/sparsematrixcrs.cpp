@@ -173,7 +173,7 @@ void SparseMatrixCRS::writeASCII(std::string const &filename) const
 {
     std::ofstream f_out(filename);
     if (!f_out)
-        throw std::runtime_error("Cannot open file for writing.");
+        throw std::runtime_error("Cannot open file for writing: " + filename);
 
     std::size_t const nnz = values_.size();
     f_out << num_rows_ << " " << num_cols_ << " " << nnz << "\n";
@@ -196,9 +196,10 @@ void SparseMatrixCRS::validateCRSData(std::size_t rows,
                                       std::size_t cols,
                                       std::vector<double> const &values,
                                       std::vector<std::size_t> const &col_idx,
-                                      std::vector<std::size_t> const &row_ptr)
+                                      std::vector<std::size_t> const &row_ptr,
+                                      std::string const &filename)
 {
-    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
+    auto const invalid = [&filename] { throw std::runtime_error("Invalid CRS file: " + filename); };
 
     if (rows == std::numeric_limits<std::size_t>::max() ||
         values.size() != col_idx.size() ||
@@ -235,9 +236,9 @@ void SparseMatrixCRS::readASCII(std::string const &filename)
 {
     std::ifstream f_in(filename);
     if (!f_in)
-        throw std::runtime_error("Cannot open file for reading.");
+        throw std::runtime_error("Cannot open file for reading: " + filename);
 
-    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
+    auto const invalid = [&filename] { throw std::runtime_error("Invalid CRS file: " + filename); };
 
     std::size_t new_rows{};
     std::size_t new_cols{};
@@ -266,7 +267,7 @@ void SparseMatrixCRS::readASCII(std::string const &filename)
             invalid();
     }
 
-    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr);
+    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr, filename);
 
     num_rows_ = new_rows;
     num_cols_ = new_cols;
@@ -280,7 +281,7 @@ void SparseMatrixCRS::writeBinary(std::string const &filename) const
 {
     std::ofstream f_out(filename, std::ios::binary);
     if (!f_out)
-        throw std::runtime_error("Cannot open file for writing.");
+        throw std::runtime_error("Cannot open file for writing: " + filename);
 
     std::size_t const nnz = values_.size();
     f_out.write(reinterpret_cast<char const *>(&num_rows_), sizeof(std::size_t));
@@ -297,9 +298,9 @@ void SparseMatrixCRS::readBinary(std::string const &filename)
 {
     std::ifstream f_in(filename, std::ios::binary);
     if (!f_in)
-        throw std::runtime_error("Cannot open file for reading.");
+        throw std::runtime_error("Cannot open file for reading: " + filename);
 
-    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
+    auto const invalid = [&filename] { throw std::runtime_error("Invalid CRS file: " + filename); };
     auto const read_exact = [&f_in, &invalid](void *data, std::streamsize count)
     {
         if (count > 0 && !f_in.read(reinterpret_cast<char *>(data), count))
@@ -331,7 +332,7 @@ void SparseMatrixCRS::readBinary(std::string const &filename)
     std::vector<std::size_t> new_row_ptr(new_rows + 1);
     read_exact(new_row_ptr.data(), static_cast<std::streamsize>((new_rows + 1) * sizeof(std::size_t)));
 
-    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr);
+    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr, filename);
 
     num_rows_ = new_rows;
     num_cols_ = new_cols;

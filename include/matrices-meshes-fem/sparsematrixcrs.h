@@ -107,7 +107,8 @@ public:
      *
      * @param filename The file path to write to.
      *
-     * @throws std::runtime_error if the file cannot be opened for writing.
+     * @throws std::runtime_error if the file cannot be opened for writing; the message
+     *         includes `filename`.
      */
     void writeASCII(std::string const &filename) const;
 
@@ -128,7 +129,8 @@ public:
      * must be in `[0, num_cols_)`, sorted within each row, and `row_ptr_` must start at zero,
      * be non-decreasing, and end at `nnz`.
      *
-     * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data.
+     * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data;
+     *         the message includes `filename`.
      */
     void readASCII(std::string const &filename);
 
@@ -137,7 +139,8 @@ public:
      *
      * @param filename The file path to write to.
      *
-     * @throws std::runtime_error if the file cannot be opened for writing.
+     * @throws std::runtime_error if the file cannot be opened for writing; the message
+     *         includes `filename`.
      */
     void writeBinary(std::string const &filename) const;
 
@@ -157,7 +160,8 @@ public:
      * The same CRS invariants as for readASCII() are checked before the matrix is modified.
      * The binary format is platform-dependent for `std::size_t` and `double` representations.
      *
-     * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data.
+     * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data;
+     *         the message includes `filename`.
      */
     void readBinary(std::string const &filename);
 
@@ -174,13 +178,16 @@ private:
     /**
      * @brief Validates the CRS invariants of a complete set of matrix arrays.
      *
+     * @param filename File path used in error messages.
+     *
      * @throws std::runtime_error if any invariant is violated.
      */
     static void validateCRSData(std::size_t rows,
                                 std::size_t cols,
                                 std::vector<double> const &values,
                                 std::vector<std::size_t> const &col_idx,
-                                std::vector<std::size_t> const &row_ptr);
+                                std::vector<std::size_t> const &row_ptr,
+                                std::string const &filename);
 
     std::size_t num_rows_;                            ///< Number of rows in the matrix.
     std::size_t num_cols_;                            ///< Number of columns in the matrix.

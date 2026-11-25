@@ -80,7 +80,7 @@ bool Mesh::readNodes(std::string const &node_file)
     coords_in >> new_num_nodes;
     if (!coords_in)
     {
-        std::cerr << "Error reading number of nodes_.\n";
+        std::cerr << "Error reading number of nodes from: " << node_file << "\n";
         return false;
     }
 
@@ -90,7 +90,7 @@ bool Mesh::readNodes(std::string const &node_file)
         coords_in >> new_nodes[i].x_ >> new_nodes[i].y_;
         if (!coords_in)
         {
-            std::cerr << "Error reading node " << i << ".\n";
+            std::cerr << "Error reading node " << i << " from: " << node_file << "\n";
             return false;
         }
     }
@@ -102,7 +102,8 @@ bool Mesh::readNodes(std::string const &node_file)
         {
             if (node >= new_num_nodes)
             {
-                std::cerr << "Error reading nodes: element refers to node " << node << ".\n";
+                std::cerr << "Error reading nodes from: " << node_file
+                          << ": element refers to node " << node << "\n";
                 return false;
             }
         }
@@ -128,7 +129,7 @@ bool Mesh::readElements(std::string const &element_file)
     elem_in >> new_num_elements;
     if (!elem_in)
     {
-        std::cerr << "Error reading number of elements.\n";
+        std::cerr << "Error reading number of elements from: " << element_file << "\n";
         return false;
     }
 
@@ -138,7 +139,7 @@ bool Mesh::readElements(std::string const &element_file)
         elem_in >> new_elements[i][0] >> new_elements[i][1] >> new_elements[i][2];
         if (!elem_in)
         {
-            std::cerr << "Error reading element " << i << ".\n";
+            std::cerr << "Error reading element " << i << " from: " << element_file << "\n";
             return false;
         }
 
@@ -146,7 +147,8 @@ bool Mesh::readElements(std::string const &element_file)
         {
             if (node >= num_nodes_)
             {
-                std::cerr << "Error reading element " << i << ": node index out of range.\n";
+                std::cerr << "Error reading element " << i << " from: " << element_file
+                          << ": node index out of range.\n";
                 return false;
             }
         }

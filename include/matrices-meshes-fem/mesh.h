@@ -84,6 +84,7 @@ public:
      * @brief Reads node coordinates from a file.
      *
      * On success, all derived mappings are rebuilt. On failure, the mesh is left unchanged.
+     * Errors are reported to std::cerr and include `node_file`.
      *
      * @param node_file Path to the node file.
      * @return True if successful, false otherwise.
@@ -94,6 +95,7 @@ public:
      * @brief Reads element connectivity from a file.
      *
      * On success, all derived mappings are rebuilt. On failure, the mesh is left unchanged.
+     * Errors are reported to std::cerr and include `element_file`.
      *
      * @param element_file Path to the element file.
      * @return True if successful, false otherwise.

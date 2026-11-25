@@ -53,6 +53,21 @@ namespace
         return std::filesystem::temp_directory_path() / ("mmf_missing_" + name + "_" + uniqueSuffix() + ".dat");
     }
 
+    std::string cannotOpenForReading(std::filesystem::path const &path)
+    {
+        return "Cannot open file for reading: " + path.string();
+    }
+
+    std::string cannotOpenForWriting(std::filesystem::path const &path)
+    {
+        return "Cannot open file for writing: " + path.string();
+    }
+
+    std::string invalidCRSFile(std::filesystem::path const &path)
+    {
+        return "Invalid CRS file: " + path.string();
+    }
+
     // [ 2 0 1 ]
     // [ 0 0 0 ]
     // [ 0 3 0 ]
@@ -182,18 +197,20 @@ TEST_CASE("SparseMatrixCRS reports file errors", "[sparsematrixcrs]")
 
     SECTION("reading missing files")
     {
-        REQUIRE_THROWS_WITH(matrix.readASCII(missingPath("ascii").string()),
-                            "Cannot open file for reading.");
-        REQUIRE_THROWS_WITH(matrix.readBinary(missingPath("binary").string()),
-                            "Cannot open file for reading.");
+        auto const ascii_path = missingPath("ascii");
+        auto const binary_path = missingPath("binary");
+        REQUIRE_THROWS_WITH(matrix.readASCII(ascii_path.string()),
+                            cannotOpenForReading(ascii_path));
+        REQUIRE_THROWS_WITH(matrix.readBinary(binary_path.string()),
+                            cannotOpenForReading(binary_path));
     }
 
     SECTION("writing to a nonexistent directory")
     {
         auto const path = std::filesystem::temp_directory_path() /
                           ("mmf_no_such_directory_" + uniqueSuffix()) / "matrix.dat";
-        REQUIRE_THROWS_WITH(matrix.writeASCII(path.string()), "Cannot open file for writing.");
-        REQUIRE_THROWS_WITH(matrix.writeBinary(path.string()), "Cannot open file for writing.");
+        REQUIRE_THROWS_WITH(matrix.writeASCII(path.string()), cannotOpenForWriting(path));
+        REQUIRE_THROWS_WITH(matrix.writeBinary(path.string()), cannotOpenForWriting(path));
     }
 }
 
@@ -211,7 +228,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         TempFile file("ascii_truncated_header");
         writeTextFile(file.path, "3 3");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -220,7 +237,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         TempFile file("ascii_truncated_values");
         writeTextFile(file.path, "2 2 2\n1\n0 1\n0 1 2\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -229,7 +246,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         TempFile file("ascii_bad_column");
         writeTextFile(file.path, "2 2 1\n5\n2\n0 1 1\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -238,7 +255,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         TempFile file("ascii_bad_row_ptr");
         writeTextFile(file.path, "2 2 2\n1 2\n0 1\n0 3 2 3\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -247,7 +264,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         TempFile file("ascii_unsorted_columns");
         writeTextFile(file.path, "2 2 2\n1 2\n1 0\n0 2 2\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -257,7 +274,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         sampleMatrix().writeBinary(file.path.string());
         std::filesystem::resize_file(file.path, 40);
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 
@@ -272,7 +289,7 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         out.write(reinterpret_cast<char const *>(&bad_column), sizeof(bad_column));
         out.close();
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), "Invalid CRS file.");
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
     }
 }
