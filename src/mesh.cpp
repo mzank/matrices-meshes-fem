@@ -58,6 +58,25 @@ std::vector<std::set<std::size_t>> const &Mesh::getNodeNeighbors() const
 }
 
 //------------------------------------------------------------------------------
+std::vector<std::vector<std::size_t>> const &Mesh::getNodeToElements() const
+{
+    return node_to_elements_;
+}
+
+//------------------------------------------------------------------------------
+std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const &
+Mesh::getEdgeToElements() const
+{
+    return edge_to_elements_;
+}
+
+//------------------------------------------------------------------------------
+std::vector<std::set<std::size_t>> const &Mesh::getElementNeighbors() const
+{
+    return element_neighbors_;
+}
+
+//------------------------------------------------------------------------------
 void Mesh::rebuildDerivedData()
 {
     nodeToElements();

@@ -4,10 +4,13 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -37,6 +40,19 @@ namespace
         std::ofstream out(path);
         out << content;
         return path.string();
+    }
+
+    Mesh smallMeshForMappings()
+    {
+        std::string const elements_path = writeTempFile(
+            "mmf_test_mapping_elements.txt", "3\n0 1 2\n1 2 3\n2 3 4\n");
+        std::string const nodes_path = writeTempFile(
+            "mmf_test_mapping_nodes.txt", "5\n0 0\n1 0\n2 0\n3 0\n4 0\n");
+
+        Mesh mesh(nodes_path, elements_path);
+        std::filesystem::remove(elements_path);
+        std::filesystem::remove(nodes_path);
+        return mesh;
     }
 } // namespace
 
@@ -99,14 +115,46 @@ TEST_CASE("Mesh node neighbors are symmetric and include self", "[mesh]")
     REQUIRE(neighbors[0] == expected);
 }
 
+TEST_CASE("Mesh mapping builders produce expected mappings", "[mesh]")
+{
+    Mesh const mesh = smallMeshForMappings();
+
+    auto const &node_to_elements = mesh.getNodeToElements();
+    REQUIRE(node_to_elements.size() == 5);
+    REQUIRE((node_to_elements[0] == std::vector<std::size_t>{0}));
+    REQUIRE((node_to_elements[1] == std::vector<std::size_t>{0, 1}));
+    REQUIRE((node_to_elements[2] == std::vector<std::size_t>{0, 1, 2}));
+    REQUIRE((node_to_elements[3] == std::vector<std::size_t>{1, 2}));
+    REQUIRE((node_to_elements[4] == std::vector<std::size_t>{2}));
+
+    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const expected_edges{
+        {{0, 1}, {0}},
+        {{0, 2}, {0}},
+        {{1, 2}, {0, 1}},
+        {{1, 3}, {1}},
+        {{2, 3}, {1, 2}},
+        {{2, 4}, {2}},
+        {{3, 4}, {2}}};
+    REQUIRE(mesh.getEdgeToElements() == expected_edges);
+
+    auto const &element_neighbors = mesh.getElementNeighbors();
+    REQUIRE(element_neighbors.size() == 3);
+    REQUIRE((element_neighbors[0] == std::set<std::size_t>{1}));
+    REQUIRE((element_neighbors[1] == std::set<std::size_t>{0, 2}));
+    REQUIRE((element_neighbors[2] == std::set<std::size_t>{1}));
+}
+
 TEST_CASE("Mesh mapping builders are idempotent", "[mesh]")
 {
     Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
 
-    auto const node_to_elements_before = captureOutput([&mesh] { mesh.printNodeToElements(); });
-    auto const edge_to_elements_before = captureOutput([&mesh] { mesh.printEdgeToElements(); });
-    auto const element_neighbors_before = captureOutput([&mesh] { mesh.printElementNeighbors(); });
+    auto const node_to_elements_before = mesh.getNodeToElements();
+    auto const edge_to_elements_before = mesh.getEdgeToElements();
+    auto const element_neighbors_before = mesh.getElementNeighbors();
     auto const node_neighbors_before = mesh.getNodeNeighbors();
+    auto const node_to_elements_text_before = captureOutput([&mesh] { mesh.printNodeToElements(); });
+    auto const edge_to_elements_text_before = captureOutput([&mesh] { mesh.printEdgeToElements(); });
+    auto const element_neighbors_text_before = captureOutput([&mesh] { mesh.printElementNeighbors(); });
 
     mesh.nodeToElements();
     mesh.nodeToElements();
@@ -117,10 +165,13 @@ TEST_CASE("Mesh mapping builders are idempotent", "[mesh]")
     mesh.nodeNeighbors();
     mesh.nodeNeighbors();
 
-    REQUIRE(captureOutput([&mesh] { mesh.printNodeToElements(); }) == node_to_elements_before);
-    REQUIRE(captureOutput([&mesh] { mesh.printEdgeToElements(); }) == edge_to_elements_before);
-    REQUIRE(captureOutput([&mesh] { mesh.printElementNeighbors(); }) == element_neighbors_before);
+    REQUIRE(mesh.getNodeToElements() == node_to_elements_before);
+    REQUIRE(mesh.getEdgeToElements() == edge_to_elements_before);
+    REQUIRE(mesh.getElementNeighbors() == element_neighbors_before);
     REQUIRE(mesh.getNodeNeighbors() == node_neighbors_before);
+    REQUIRE(captureOutput([&mesh] { mesh.printNodeToElements(); }) == node_to_elements_text_before);
+    REQUIRE(captureOutput([&mesh] { mesh.printEdgeToElements(); }) == edge_to_elements_text_before);
+    REQUIRE(captureOutput([&mesh] { mesh.printElementNeighbors(); }) == element_neighbors_text_before);
 }
 
 TEST_CASE("Mesh file readers rebuild derived mappings and are transactional", "[mesh]")

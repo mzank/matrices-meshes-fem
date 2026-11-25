@@ -81,6 +81,26 @@ public:
     std::vector<std::set<std::size_t>> const &getNodeNeighbors() const;
 
     /**
+     * @brief Returns the elements containing each node.
+     * @return Constant reference to a vector where each entry lists the elements of that node.
+     */
+    std::vector<std::vector<std::size_t>> const &getNodeToElements() const;
+
+    /**
+     * @brief Returns the elements containing each edge.
+     * @return Constant reference to a map from a sorted node pair to the elements sharing that edge.
+     */
+    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const &
+    getEdgeToElements() const;
+
+    /**
+     * @brief Returns the neighboring elements for each element.
+     * Elements are neighbors when they share an edge.
+     * @return Constant reference to a vector of sets of neighboring element indices.
+     */
+    std::vector<std::set<std::size_t>> const &getElementNeighbors() const;
+
+    /**
      * @brief Reads node coordinates from a file.
      *
      * On success, all derived mappings are rebuilt. On failure, the mesh is left unchanged.
