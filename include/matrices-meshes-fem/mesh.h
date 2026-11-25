@@ -82,6 +82,9 @@ public:
 
     /**
      * @brief Reads node coordinates from a file.
+     *
+     * On success, all derived mappings are rebuilt. On failure, the mesh is left unchanged.
+     *
      * @param node_file Path to the node file.
      * @return True if successful, false otherwise.
      */
@@ -89,13 +92,18 @@ public:
 
     /**
      * @brief Reads element connectivity from a file.
+     *
+     * On success, all derived mappings are rebuilt. On failure, the mesh is left unchanged.
+     *
      * @param element_file Path to the element file.
      * @return True if successful, false otherwise.
      */
     bool readElements(std::string const &element_file);
 
     /**
-     * @brief Builds a mapping from nodes to the elements they belong to.
+     * @brief Rebuilds the node-to-elements mapping from scratch.
+     *
+     * Repeated calls do not duplicate entries.
      */
     void nodeToElements();
 
@@ -110,7 +118,9 @@ public:
     void printNodeToElements() const;
 
     /**
-     * @brief Builds a mapping from edges to the elements they are part of.
+     * @brief Rebuilds the edge-to-elements mapping from scratch.
+     *
+     * Repeated calls do not duplicate entries.
      */
     void edgeToElements();
 
@@ -120,7 +130,7 @@ public:
     void printEdgeToElements() const;
 
     /**
-     * @brief Builds a mapping from elements to neighboring elements.
+     * @brief Rebuilds the element-neighbors mapping from scratch.
      * Elements are neighboring when sharing an edge.
      */
     void elementNeighbors();
@@ -131,7 +141,7 @@ public:
     void printElementNeighbors() const;
 
     /**
-     * @brief Build a mapping from nodes to neighboring nodes, where each node
+     * @brief Rebuilds the node-neighbors mapping from scratch, where each node
      * is a neighbor of itself.
      */
     void nodeNeighbors();
@@ -189,6 +199,11 @@ public:
     std::pair<std::size_t, double> findElementShortestDistanceToPoint(Coord const &p) const;
 
 private:
+    /**
+     * @brief Rebuilds all derived mappings from nodes_ and elements_.
+     */
+    void rebuildDerivedData();
+
     std::vector<Coord> nodes_;                                                 ///< List of node coordinates.
     std::size_t num_nodes_;                                                    ///< Number of nodes.
     std::vector<std::array<std::size_t, 3>> elements_;                         ///< List of triangular elements.

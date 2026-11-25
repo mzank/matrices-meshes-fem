@@ -25,13 +25,6 @@ Mesh::Mesh(std::string const &node_file, std::string const &element_file)
 
     if (!readElements(element_file))
         throw std::runtime_error("Mesh constructor: Failed to read element file '" + element_file + "'");
-
-    nodeToElements();
-    edgeToElements();
-    element_neighbors_.resize(num_elements_);
-    elementNeighbors();
-    node_neighbors_.resize(num_nodes_);
-    nodeNeighbors();
 }
 
 //------------------------------------------------------------------------------
@@ -65,6 +58,15 @@ std::vector<std::set<std::size_t>> const &Mesh::getNodeNeighbors() const
 }
 
 //------------------------------------------------------------------------------
+void Mesh::rebuildDerivedData()
+{
+    nodeToElements();
+    edgeToElements();
+    elementNeighbors();
+    nodeNeighbors();
+}
+
+//------------------------------------------------------------------------------
 bool Mesh::readNodes(std::string const &node_file)
 {
     std::ifstream coords_in(node_file);
@@ -74,23 +76,41 @@ bool Mesh::readNodes(std::string const &node_file)
         return false;
     }
 
-    coords_in >> num_nodes_;
+    std::size_t new_num_nodes{};
+    coords_in >> new_num_nodes;
     if (!coords_in)
     {
         std::cerr << "Error reading number of nodes_.\n";
         return false;
     }
 
-    nodes_.resize(num_nodes_);
-    for (std::size_t i = 0; i < num_nodes_; ++i)
+    std::vector<Coord> new_nodes(new_num_nodes);
+    for (std::size_t i = 0; i < new_num_nodes; ++i)
     {
-        coords_in >> nodes_[i].x_ >> nodes_[i].y_;
+        coords_in >> new_nodes[i].x_ >> new_nodes[i].y_;
         if (!coords_in)
         {
             std::cerr << "Error reading node " << i << ".\n";
             return false;
         }
     }
+
+    // Existing elements must remain valid for the new node count.
+    for (auto const &element : elements_)
+    {
+        for (std::size_t const node : element)
+        {
+            if (node >= new_num_nodes)
+            {
+                std::cerr << "Error reading nodes: element refers to node " << node << ".\n";
+                return false;
+            }
+        }
+    }
+
+    nodes_ = std::move(new_nodes);
+    num_nodes_ = new_num_nodes;
+    rebuildDerivedData();
     return true;
 }
 
@@ -104,23 +124,37 @@ bool Mesh::readElements(std::string const &element_file)
         return false;
     }
 
-    elem_in >> num_elements_;
+    std::size_t new_num_elements{};
+    elem_in >> new_num_elements;
     if (!elem_in)
     {
         std::cerr << "Error reading number of elements.\n";
         return false;
     }
 
-    elements_.resize(num_elements_);
-    for (std::size_t i = 0; i < num_elements_; ++i)
+    std::vector<std::array<std::size_t, 3>> new_elements(new_num_elements);
+    for (std::size_t i = 0; i < new_num_elements; ++i)
     {
-        elem_in >> elements_[i][0] >> elements_[i][1] >> elements_[i][2];
+        elem_in >> new_elements[i][0] >> new_elements[i][1] >> new_elements[i][2];
         if (!elem_in)
         {
             std::cerr << "Error reading element " << i << ".\n";
             return false;
         }
+
+        for (std::size_t const node : new_elements[i])
+        {
+            if (node >= num_nodes_)
+            {
+                std::cerr << "Error reading element " << i << ": node index out of range.\n";
+                return false;
+            }
+        }
     }
+
+    elements_ = std::move(new_elements);
+    num_elements_ = new_num_elements;
+    rebuildDerivedData();
     return true;
 }
 
@@ -135,6 +169,7 @@ void Mesh::printSummary() const
 //------------------------------------------------------------------------------
 void Mesh::nodeToElements()
 {
+    node_to_elements_.clear();
     node_to_elements_.resize(num_nodes_);
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
@@ -162,6 +197,7 @@ void Mesh::printNodeToElements() const
 //------------------------------------------------------------------------------
 void Mesh::edgeToElements()
 {
+    edge_to_elements_.clear();
     for (std::size_t e = 0; e < num_elements_; ++e)
     {
         auto const &nodes_el = elements_[e];
@@ -202,6 +238,8 @@ void Mesh::printEdgeToElements() const
 //------------------------------------------------------------------------------
 void Mesh::elementNeighbors()
 {
+    element_neighbors_.clear();
+    element_neighbors_.resize(num_elements_);
     for (auto const &[edge, elems] : edge_to_elements_)
     {
         // if edge is part of two elements
@@ -232,6 +270,8 @@ void Mesh::printElementNeighbors() const
 //------------------------------------------------------------------------------
 void Mesh::nodeNeighbors()
 {
+    node_neighbors_.clear();
+    node_neighbors_.resize(num_nodes_);
     for (std::size_t i = 0; i < num_nodes_; ++i)
     {
         node_neighbors_[i].insert(i);

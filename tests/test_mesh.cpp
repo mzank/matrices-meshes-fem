@@ -1,6 +1,11 @@
 #include <cmath>
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -15,6 +20,23 @@ namespace
     std::string dataPath(std::string const &filename)
     {
         return std::string(MMF_TEST_DATA_DIR) + "/" + filename;
+    }
+
+    std::string captureOutput(std::function<void()> const &print)
+    {
+        std::ostringstream output;
+        std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+        print();
+        std::cout.rdbuf(old_buffer);
+        return output.str();
+    }
+
+    std::string writeTempFile(std::string const &filename, std::string const &content)
+    {
+        std::filesystem::path const path = std::filesystem::temp_directory_path() / filename;
+        std::ofstream out(path);
+        out << content;
+        return path.string();
     }
 } // namespace
 
@@ -75,6 +97,69 @@ TEST_CASE("Mesh node neighbors are symmetric and include self", "[mesh]")
 
     std::set<std::size_t> const expected{0, 3, 9, 13, 15};
     REQUIRE(neighbors[0] == expected);
+}
+
+TEST_CASE("Mesh mapping builders are idempotent", "[mesh]")
+{
+    Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
+
+    auto const node_to_elements_before = captureOutput([&mesh] { mesh.printNodeToElements(); });
+    auto const edge_to_elements_before = captureOutput([&mesh] { mesh.printEdgeToElements(); });
+    auto const element_neighbors_before = captureOutput([&mesh] { mesh.printElementNeighbors(); });
+    auto const node_neighbors_before = mesh.getNodeNeighbors();
+
+    mesh.nodeToElements();
+    mesh.nodeToElements();
+    mesh.edgeToElements();
+    mesh.edgeToElements();
+    mesh.elementNeighbors();
+    mesh.elementNeighbors();
+    mesh.nodeNeighbors();
+    mesh.nodeNeighbors();
+
+    REQUIRE(captureOutput([&mesh] { mesh.printNodeToElements(); }) == node_to_elements_before);
+    REQUIRE(captureOutput([&mesh] { mesh.printEdgeToElements(); }) == edge_to_elements_before);
+    REQUIRE(captureOutput([&mesh] { mesh.printElementNeighbors(); }) == element_neighbors_before);
+    REQUIRE(mesh.getNodeNeighbors() == node_neighbors_before);
+}
+
+TEST_CASE("Mesh file readers rebuild derived mappings and are transactional", "[mesh]")
+{
+    std::string const small_elements = writeTempFile(
+        "mmf_test_small_elements.txt", "3\n0 1 2\n1 2 3\n2 3 4\n");
+    std::string const small_nodes = writeTempFile(
+        "mmf_test_small_nodes.txt", "5\n0 0\n1 0\n2 0\n3 0\n4 0\n");
+    std::string const too_few_nodes = writeTempFile(
+        "mmf_test_too_few_nodes.txt", "2\n0 0\n1 0\n");
+
+    Mesh mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
+    auto const original_nodes = mesh.getNumNodes();
+    auto const original_elements = mesh.getNumElements();
+    auto const original_neighbors = mesh.getNodeNeighbors();
+
+    REQUIRE_FALSE(mesh.readElements(dataPath("does_not_exist.txt")));
+    REQUIRE(mesh.getNumElements() == original_elements);
+    REQUIRE(mesh.getNodeNeighbors() == original_neighbors);
+
+    REQUIRE(mesh.readElements(small_elements));
+    REQUIRE(mesh.getNumElements() == 3);
+    REQUIRE((mesh.getNodeNeighbors()[0] == std::set<std::size_t>{0, 1, 2}));
+    REQUIRE((mesh.getNodeNeighbors()[4] == std::set<std::size_t>{2, 3, 4}));
+
+    REQUIRE_FALSE(mesh.readNodes(dataPath("does_not_exist.txt")));
+    REQUIRE(mesh.getNumNodes() == original_nodes);
+
+    REQUIRE_FALSE(mesh.readNodes(too_few_nodes));
+    REQUIRE(mesh.getNumNodes() == original_nodes);
+
+    REQUIRE(mesh.readNodes(small_nodes));
+    REQUIRE(mesh.getNumNodes() == 5);
+    REQUIRE(mesh.getNodes().size() == 5);
+    REQUIRE(mesh.getNodeNeighbors().size() == 5);
+
+    std::filesystem::remove(small_elements);
+    std::filesystem::remove(small_nodes);
+    std::filesystem::remove(too_few_nodes);
 }
 
 TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]")
