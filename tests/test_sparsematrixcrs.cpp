@@ -48,6 +48,31 @@ namespace
         out << content;
     }
 
+    void writeBinaryFile(std::filesystem::path const &path,
+                         std::size_t rows,
+                         std::size_t cols,
+                         std::vector<double> const &values,
+                         std::vector<std::size_t> const &col_idx,
+                         std::vector<std::size_t> const &row_ptr)
+    {
+        std::ofstream out(path, std::ios::binary);
+        auto const write_size = [&out](std::size_t const value)
+        {
+            out.write(reinterpret_cast<char const *>(&value), sizeof(value));
+        };
+
+        write_size(rows);
+        write_size(cols);
+        write_size(values.size());
+
+        for (double const value : values)
+            out.write(reinterpret_cast<char const *>(&value), sizeof(value));
+        for (std::size_t const col : col_idx)
+            write_size(col);
+        for (std::size_t const row : row_ptr)
+            write_size(row);
+    }
+
     std::filesystem::path missingPath(std::string const &name)
     {
         return std::filesystem::temp_directory_path() / ("mmf_missing_" + name + "_" + uniqueSuffix() + ".dat");
@@ -121,6 +146,22 @@ TEST_CASE("SparseMatrixCRS rejects unsorted or duplicate entries", "[sparsematri
     }
 }
 
+TEST_CASE("SparseMatrixCRS validates constructor arguments", "[sparsematrixcrs]")
+{
+    SECTION("too many entry rows")
+    {
+        REQUIRE_THROWS_WITH(SparseMatrixCRS(1, 3, {{{0, 1.0}}, {{0, 2.0}}}),
+                            "Too many rows in entries_per_row");
+    }
+
+    SECTION("fewer entry rows than matrix rows leave trailing rows empty")
+    {
+        SparseMatrixCRS const matrix(3, 3, {{{0, 1.0}}});
+
+        requireEqual(matrix.multiply({1.0, 2.0, 3.0}), {1.0, 0.0, 0.0});
+    }
+}
+
 TEST_CASE("SparseMatrixCRS treats an empty matrix as zero", "[sparsematrixcrs]")
 {
     SparseMatrixCRS const matrix(3, 2);
@@ -189,6 +230,51 @@ TEST_CASE("SparseMatrixCRS round-trips through binary", "[sparsematrixcrs]")
     SparseMatrixCRS restored(1, 1);
     restored.readBinary(file.path.string());
     requireEqual(restored.multiply(x), original.multiply(x));
+}
+
+TEST_CASE("SparseMatrixCRS round-trips empty and zero-dimension matrices", "[sparsematrixcrs]")
+{
+    auto const checkRoundTrip = [](std::size_t const rows, std::size_t const cols)
+    {
+        std::string const dimensions = std::to_string(rows) + "x" + std::to_string(cols);
+        TempFile ascii("empty_ascii_" + dimensions);
+        TempFile binary("empty_binary_" + dimensions);
+
+        SparseMatrixCRS const original(rows, cols);
+        std::vector<double> const x(cols, 2.0);
+        auto const expected = original.multiply(x);
+
+        original.writeASCII(ascii.path.string());
+        original.writeBinary(binary.path.string());
+
+        std::ifstream input(ascii.path);
+        std::string header;
+        std::getline(input, header);
+        REQUIRE(header == std::to_string(rows) + " " + std::to_string(cols) + " 0");
+
+        SparseMatrixCRS restored_ascii(1, 1);
+        restored_ascii.readASCII(ascii.path.string());
+        requireEqual(restored_ascii.multiply(x), expected);
+
+        SparseMatrixCRS restored_binary(1, 1);
+        restored_binary.readBinary(binary.path.string());
+        requireEqual(restored_binary.multiply(x), expected);
+    };
+
+    SECTION("0x0")
+    {
+        checkRoundTrip(0, 0);
+    }
+
+    SECTION("0x3")
+    {
+        checkRoundTrip(0, 3);
+    }
+
+    SECTION("3x0")
+    {
+        checkRoundTrip(3, 0);
+    }
 }
 
 TEST_CASE("SparseMatrixCRS reports file errors", "[sparsematrixcrs]")
@@ -288,6 +374,24 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]")
         out.seekp(static_cast<std::streamoff>(3 * sizeof(std::size_t) + 3 * sizeof(double)));
         out.write(reinterpret_cast<char const *>(&bad_column), sizeof(bad_column));
         out.close();
+
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        requireUnchanged();
+    }
+
+    SECTION("binary row pointer is not monotonic")
+    {
+        TempFile file("binary_bad_row_ptr");
+        writeBinaryFile(file.path, 2, 2, {1.0, 2.0}, {0, 1}, {0, 2, 1});
+
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        requireUnchanged();
+    }
+
+    SECTION("binary columns are unsorted")
+    {
+        TempFile file("binary_unsorted_columns");
+        writeBinaryFile(file.path, 2, 2, {1.0, 2.0}, {1, 0}, {0, 2, 2});
 
         REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
         requireUnchanged();
