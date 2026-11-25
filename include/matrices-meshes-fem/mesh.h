@@ -166,7 +166,8 @@ public:
      * @param p The given point.
      * @param a Coordinates Coord of the first endpoint of the segment.
      * @param b Coordinates Coord of the second endpoint of the segment.
-     * @return Distance from the point to the segment.
+     * @return Distance from the point to the segment. If both endpoints coincide,
+     *         the segment degenerates to a point and the distance to that point is returned.
      */
     double pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const;
 

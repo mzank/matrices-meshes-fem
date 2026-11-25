@@ -100,6 +100,13 @@ TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]")
         REQUIRE(mesh.pointToSegmentDistance({1.0, 0.0}, a, Coord{2.0, 0.0}) == Catch::Approx(0.0));
     }
 
+    SECTION("pointToSegmentDistance handles degenerate segments")
+    {
+        REQUIRE(mesh.pointToSegmentDistance({3.0, 4.0}, a, a) == Catch::Approx(5.0));
+        REQUIRE(mesh.pointToSegmentDistance(a, a, a) == Catch::Approx(0.0));
+        REQUIRE(mesh.pointToTriangleDistance({-3.0, 4.0}, a, a, b) == Catch::Approx(5.0));
+    }
+
     SECTION("pointToTriangleDistance measures distance to the boundary")
     {
         REQUIRE(mesh.pointToTriangleDistance({0.25, 0.25}, a, b, c) == Catch::Approx(0.0));

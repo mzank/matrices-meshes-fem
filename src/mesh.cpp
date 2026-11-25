@@ -284,8 +284,13 @@ double Mesh::pointToSegmentDistance(Coord const &p, Coord const &a, Coord const 
 {
     Coord const ab{b.x_ - a.x_, b.y_ - a.y_};
     Coord const ap{p.x_ - a.x_, p.y_ - a.y_};
+    double const ab_squared_norm = ab.x_ * ab.x_ + ab.y_ * ab.y_;
 
-    double t = (ap.x_ * ab.x_ + ap.y_ * ab.y_) / (ab.x_ * ab.x_ + ab.y_ * ab.y_);
+    // A degenerate segment is just a point; there is no direction to project onto.
+    if (!(ab_squared_norm > 0.0))
+        return std::hypot(p.x_ - a.x_, p.y_ - a.y_);
+
+    double t = (ap.x_ * ab.x_ + ap.y_ * ab.y_) / ab_squared_norm;
     t = std::max(0.0, std::min(1.0, t)); // clamping t to [0,1]
 
     Coord const projection{a.x_ + t * ab.x_, a.y_ + t * ab.y_};
