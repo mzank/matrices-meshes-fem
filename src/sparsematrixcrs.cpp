@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <ranges>
 #include <stdexcept>
@@ -187,25 +188,87 @@ void SparseMatrixCRS::writeASCII(std::string const &filename) const
 }
 
 //-----------------------------------------------------------------------------
+void SparseMatrixCRS::validateCRSData(std::size_t rows,
+                                      std::size_t cols,
+                                      std::vector<double> const &values,
+                                      std::vector<std::size_t> const &col_idx,
+                                      std::vector<std::size_t> const &row_ptr)
+{
+    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
+
+    if (rows == std::numeric_limits<std::size_t>::max() ||
+        values.size() != col_idx.size() ||
+        row_ptr.size() != rows + 1 ||
+        row_ptr.front() != 0 ||
+        row_ptr.back() != values.size())
+    {
+        invalid();
+    }
+
+    for (std::size_t const col : col_idx)
+    {
+        if (col >= cols)
+            invalid();
+    }
+
+    for (std::size_t row = 0; row < rows; ++row)
+    {
+        std::size_t const begin = row_ptr[row];
+        std::size_t const end = row_ptr[row + 1];
+        if (begin > end || end > values.size())
+            invalid();
+
+        for (std::size_t i = begin + 1; i < end; ++i)
+        {
+            if (col_idx[i - 1] >= col_idx[i])
+                invalid();
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
 void SparseMatrixCRS::readASCII(std::string const &filename)
 {
     std::ifstream f_in(filename);
     if (!f_in)
         throw std::runtime_error("Cannot open file for reading.");
 
-    std::size_t nnz;
-    f_in >> num_rows_ >> num_cols_ >> nnz;
+    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
 
-    values_.resize(nnz);
-    col_idx_.resize(nnz);
-    row_ptr_.resize(num_rows_ + 1);
+    std::size_t new_rows{};
+    std::size_t new_cols{};
+    std::size_t nnz{};
+    if (!(f_in >> new_rows >> new_cols >> nnz) || new_rows == std::numeric_limits<std::size_t>::max())
+        invalid();
 
+    std::vector<double> new_values(nnz);
     for (std::size_t i = 0; i < nnz; ++i)
-        f_in >> values_[i];
+    {
+        if (!(f_in >> new_values[i]))
+            invalid();
+    }
+
+    std::vector<std::size_t> new_col_idx(nnz);
     for (std::size_t i = 0; i < nnz; ++i)
-        f_in >> col_idx_[i];
-    for (std::size_t i = 0; i < num_rows_ + 1; ++i)
-        f_in >> row_ptr_[i];
+    {
+        if (!(f_in >> new_col_idx[i]))
+            invalid();
+    }
+
+    std::vector<std::size_t> new_row_ptr(new_rows + 1);
+    for (std::size_t i = 0; i < new_rows + 1; ++i)
+    {
+        if (!(f_in >> new_row_ptr[i]))
+            invalid();
+    }
+
+    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr);
+
+    num_rows_ = new_rows;
+    num_cols_ = new_cols;
+    values_ = std::move(new_values);
+    col_idx_ = std::move(new_col_idx);
+    row_ptr_ = std::move(new_row_ptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -232,18 +295,45 @@ void SparseMatrixCRS::readBinary(std::string const &filename)
     if (!f_in)
         throw std::runtime_error("Cannot open file for reading.");
 
-    std::size_t nnz;
-    f_in.read(reinterpret_cast<char *>(&num_rows_), sizeof(std::size_t));
-    f_in.read(reinterpret_cast<char *>(&num_cols_), sizeof(std::size_t));
-    f_in.read(reinterpret_cast<char *>(&nnz), sizeof(std::size_t));
+    auto const invalid = [] { throw std::runtime_error("Invalid CRS file."); };
+    auto const read_exact = [&f_in, &invalid](void *data, std::streamsize count)
+    {
+        if (count > 0 && !f_in.read(reinterpret_cast<char *>(data), count))
+            invalid();
+    };
 
-    values_.resize(nnz);
-    col_idx_.resize(nnz);
-    row_ptr_.resize(num_rows_ + 1);
+    std::size_t new_rows{};
+    std::size_t new_cols{};
+    std::size_t nnz{};
+    read_exact(&new_rows, sizeof(new_rows));
+    read_exact(&new_cols, sizeof(new_cols));
+    read_exact(&nnz, sizeof(nnz));
 
-    f_in.read(reinterpret_cast<char *>(values_.data()), nnz * sizeof(double));
-    f_in.read(reinterpret_cast<char *>(col_idx_.data()), nnz * sizeof(std::size_t));
-    f_in.read(reinterpret_cast<char *>(row_ptr_.data()), (num_rows_ + 1) * sizeof(std::size_t));
+    auto const max_stream_size = static_cast<std::size_t>(std::numeric_limits<std::streamsize>::max());
+    if (new_rows == std::numeric_limits<std::size_t>::max() ||
+        nnz > max_stream_size / sizeof(double) ||
+        nnz > max_stream_size / sizeof(std::size_t) ||
+        new_rows + 1 > max_stream_size / sizeof(std::size_t))
+    {
+        invalid();
+    }
+
+    std::vector<double> new_values(nnz);
+    read_exact(new_values.data(), static_cast<std::streamsize>(nnz * sizeof(double)));
+
+    std::vector<std::size_t> new_col_idx(nnz);
+    read_exact(new_col_idx.data(), static_cast<std::streamsize>(nnz * sizeof(std::size_t)));
+
+    std::vector<std::size_t> new_row_ptr(new_rows + 1);
+    read_exact(new_row_ptr.data(), static_cast<std::streamsize>((new_rows + 1) * sizeof(std::size_t)));
+
+    validateCRSData(new_rows, new_cols, new_values, new_col_idx, new_row_ptr);
+
+    num_rows_ = new_rows;
+    num_cols_ = new_cols;
+    values_ = std::move(new_values);
+    col_idx_ = std::move(new_col_idx);
+    row_ptr_ = std::move(new_row_ptr);
 }
 
 //-----------------------------------------------------------------------------
