@@ -15,7 +15,6 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
-#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -88,37 +87,27 @@ SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const &graph)
       col_idx_(),
       row_ptr_{0} // initial row offset
 {
-    auto const &adjacency = graph.getAdjacency();
     auto const &weights = graph.getWeights();
 
-    // Calculate the total number of non-zero elements, including every diagonal weight
-    // even when the graph has no self-edge for that node.
-    std::size_t nnz = 0;
-    for (std::size_t row = 0; row < num_rows_; ++row)
-    {
-        nnz += adjacency.at(row).size();
-        if (adjacency.at(row).count(row) == 0)
-            ++nnz;
-    }
+    // The weight map contains every adjacency weight plus one diagonal per node.
+    auto const nnz = weights.size();
 
     // Reserve memory to avoid unnecessary reallocations.
     values_.reserve(nnz);
     col_idx_.reserve(nnz);
     row_ptr_.reserve(num_rows_ + 1);
 
-    // Process each row.
+    // Process each row. std::map orders entries by (row, column), so columns stay sorted.
     for (std::size_t row = 0; row < num_rows_; ++row)
     {
-        std::set<std::size_t> columns = adjacency.at(row);
-        columns.insert(row);
-
-        for (std::size_t const col : columns)
+        for (auto it = weights.lower_bound({row, 0});
+             it != weights.end() && it->first.first == row; ++it)
         {
-            // Validate column index.
+            auto const col = it->first.second;
             if (col >= num_cols_)
                 throw std::out_of_range("Column index out of range");
 
-            values_.push_back(weights.at({row, col}));
+            values_.push_back(it->second);
             col_idx_.push_back(col);
         }
 
