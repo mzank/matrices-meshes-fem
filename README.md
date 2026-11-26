@@ -2,7 +2,7 @@
 
 ---
 
-A small C++20 library for working with 2D triangular meshes and graph-based sparse matrices. It reads mesh nodes and elements from files, derives node-neighbor, edge-to-element and element-neighbor mappings, builds directed and distance-weighted graphs, and assembles a sparse matrix in Compressed Row Storage (CRS) format with matrix-vector multiplication and ASCII/binary file I/O.
+A small C++20 library for working with 2D triangular meshes and graph-based sparse matrices. It reads mesh nodes and elements from files, derives node-to-element, node-neighbor, edge-to-element and element-neighbor mappings, builds directed and distance-weighted graphs, and assembles a sparse matrix in Compressed Row Storage (CRS) format with matrix-vector multiplication and ASCII/binary file I/O.
 
 Binary matrix files store raw `std::size_t` and `double` representations and are intended for same-platform Linux use with a matching ABI/endianness; use ASCII I/O for portable exchange.
 
@@ -15,6 +15,7 @@ Binary matrix files store raw `std::size_t` and `double` representations and are
 
 ```text
 .
+├── .github/workflows/           # CI workflow
 ├── CMakeLists.txt
 ├── cmake/                       # CMake package config template
 ├── data/meshes/                 # sample 3x3 triangular mesh
@@ -43,7 +44,7 @@ cmake --build build --parallel
 
 ## Tests
 
-Tests are written with [Catch2](https://github.com/catchorg/Catch2) and registered with CTest. Catch2 is downloaded automatically at configure time via `FetchContent`, so the first configure requires network access. The current suite covers the `Coord` struct (`tests/test_coord.cpp`), the `Mesh` class (`tests/test_mesh.cpp`) using the sample mesh in `data/meshes/`, the `Graph` class (`tests/test_graph.cpp`), the `WeightedGraph` class (`tests/test_weightedgraph.cpp`), and the `SparseMatrixCRS` class (`tests/test_sparsematrixcrs.cpp`).
+Tests are written with [Catch2](https://github.com/catchorg/Catch2) and registered with CTest. Catch2 is downloaded automatically at configure time via `FetchContent`, so the first configure requires network access. The current suite covers the `Coord` struct (`tests/test_coord.cpp`), the `Mesh` class (`tests/test_mesh.cpp`) using both the sample mesh in `data/meshes/` and temporary test files, the `Graph` class (`tests/test_graph.cpp`), the `WeightedGraph` class (`tests/test_weightedgraph.cpp`), and the `SparseMatrixCRS` class (`tests/test_sparsematrixcrs.cpp`).
 
 ```bash
 cmake -S . -B build -DBUILD_TESTING=ON

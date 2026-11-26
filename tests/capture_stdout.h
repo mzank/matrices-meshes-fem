@@ -3,8 +3,8 @@
  * @brief RAII helper for temporarily redirecting std::cout in tests.
  */
 
-#ifndef CAPTURE_STDOUT_HPP_INCLUDED
-#define CAPTURE_STDOUT_HPP_INCLUDED
+#ifndef CAPTURE_STDOUT_H_INCLUDED
+#define CAPTURE_STDOUT_H_INCLUDED
 
 #include <iostream>
 #include <streambuf>
@@ -39,4 +39,4 @@ namespace mmf_test
     };
 } // namespace mmf_test
 
-#endif // CAPTURE_STDOUT_HPP_INCLUDED
+#endif // CAPTURE_STDOUT_H_INCLUDED
