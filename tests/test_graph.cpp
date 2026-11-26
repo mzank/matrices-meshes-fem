@@ -7,7 +7,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "capture_stdout.hpp"
+#include "capture_stdout.h"
 #include "matrices-meshes-fem/graph.h"
 
 TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")

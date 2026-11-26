@@ -15,7 +15,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "capture_stdout.hpp"
+#include "capture_stdout.h"
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/mesh.h"
 

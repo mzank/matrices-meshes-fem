@@ -1,5 +1,5 @@
 /**
- * @file capture_stdout.hpp
+ * @file capture_stdout.h
  * @brief RAII helper for temporarily redirecting std::cout in tests.
  */
 
