@@ -9,13 +9,14 @@
 #ifndef MESH_H_INCLUDED
 #define MESH_H_INCLUDED
 
-#include <cstddef>
-#include <string>
-#include <vector>
 #include <array>
+#include <cstddef>
 #include <map>
 #include <set>
+#include <string>
 #include <utility>
+#include <vector>
+
 #include "coord.h"
 
 /**

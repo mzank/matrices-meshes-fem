@@ -15,6 +15,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "capture_stdout.hpp"
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/mesh.h"
 
@@ -28,9 +29,8 @@ namespace
     std::string captureOutput(std::function<void()> const &print)
     {
         std::ostringstream output;
-        std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+        [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
         print();
-        std::cout.rdbuf(old_buffer);
         return output.str();
     }
 

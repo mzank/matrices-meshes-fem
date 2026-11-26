@@ -1,13 +1,16 @@
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <unistd.h>
 #include <utility>
 #include <vector>
 
@@ -15,6 +18,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 
+#include "capture_stdout.hpp"
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/sparsematrixcrs.h"
 #include "matrices-meshes-fem/weightedgraph.h"
@@ -23,7 +27,12 @@ namespace
 {
     std::string uniqueSuffix()
     {
-        return std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+        static std::atomic<unsigned long long> counter{0};
+        static std::random_device random_device;
+
+        auto const timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+        return std::to_string(timestamp) + "_" + std::to_string(::getpid()) + "_" +
+               std::to_string(random_device()) + "_" + std::to_string(counter.fetch_add(1));
     }
 
     struct TempFile
@@ -191,9 +200,8 @@ TEST_CASE("SparseMatrixCRS from WeightedGraph includes all diagonal weights", "[
     SparseMatrixCRS const matrix(sampleWeightedGraph());
 
     std::ostringstream output;
-    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
     matrix.print();
-    std::cout.rdbuf(old_buffer);
 
     std::string const text = output.str();
     REQUIRE(text.find("row 0: (col 0: -1.25) (col 1: 1) (col 2: 0.25)") != std::string::npos);
@@ -403,10 +411,9 @@ TEST_CASE("SparseMatrixCRS prints its entries and sparsity pattern", "[sparsemat
     SparseMatrixCRS const matrix = sampleMatrix();
 
     std::ostringstream output;
-    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
     matrix.print();
     matrix.printSparsityPattern();
-    std::cout.rdbuf(old_buffer);
 
     std::string const text = output.str();
     REQUIRE(text.find("CRS matrix:") != std::string::npos);

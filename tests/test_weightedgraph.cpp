@@ -11,6 +11,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "capture_stdout.hpp"
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/weightedgraph.h"
 
@@ -122,9 +123,8 @@ TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
     WeightedGraph const graph(sampleNeighbors(), sampleCoords());
 
     std::ostringstream output;
-    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
     graph.print();
-    std::cout.rdbuf(old_buffer);
 
     std::string const text = output.str();
     REQUIRE(text.find("Weighted graph edges:") != std::string::npos);
@@ -142,9 +142,8 @@ TEST_CASE("WeightedGraph print is polymorphic", "[weightedgraph]")
     Graph const &base = graph;
 
     std::ostringstream output;
-    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
     base.print();
-    std::cout.rdbuf(old_buffer);
 
     std::string const text = output.str();
     REQUIRE(text.find("Weighted graph edges:") != std::string::npos);

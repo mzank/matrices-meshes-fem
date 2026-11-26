@@ -10,8 +10,8 @@
 #define GRAPH_H_INCLUDED
 
 #include <cstddef>
-#include <vector>
 #include <set>
+#include <vector>
 
 /**
  * @class Graph

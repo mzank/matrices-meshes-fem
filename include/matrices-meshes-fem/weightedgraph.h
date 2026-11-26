@@ -10,13 +10,13 @@
 #define WEIGHTEDGRAPH_H_INCLUDED
 
 #include <cstddef>
-
-#include "graph.h"
-#include "coord.h"
-#include <vector>
 #include <map>
 #include <set>
 #include <utility>
+#include <vector>
+
+#include "coord.h"
+#include "graph.h"
 
 /**
  * @class WeightedGraph

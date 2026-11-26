@@ -16,10 +16,10 @@
 #include <vector>
 
 #include "matrices-meshes-fem/coord.h"
-#include "matrices-meshes-fem/mesh.h"
 #include "matrices-meshes-fem/graph.h"
-#include "matrices-meshes-fem/weightedgraph.h"
+#include "matrices-meshes-fem/mesh.h"
 #include "matrices-meshes-fem/sparsematrixcrs.h"
+#include "matrices-meshes-fem/weightedgraph.h"
 
 /**
  * @brief Demonstrates usage of Mesh, Graph, WeightedGraph, and SparseMatrixCRS classes.

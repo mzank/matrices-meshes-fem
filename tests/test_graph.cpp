@@ -7,6 +7,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include "capture_stdout.hpp"
 #include "matrices-meshes-fem/graph.h"
 
 TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")
@@ -58,9 +59,8 @@ TEST_CASE("Graph prints its adjacency list", "[graph]")
     Graph const graph(input);
 
     std::ostringstream output;
-    std::streambuf *old_buffer = std::cout.rdbuf(output.rdbuf());
+    [[maybe_unused]] mmf_test::StdoutCapture const capture(output);
     graph.print();
-    std::cout.rdbuf(old_buffer);
 
     std::string const text = output.str();
     REQUIRE(text.find("Graph adjacency list:") != std::string::npos);

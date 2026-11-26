@@ -10,9 +10,9 @@
 #define SPARSEMATRIXCRS_H_INCLUDED
 
 #include <cstddef>
-#include <vector>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "weightedgraph.h"
 
