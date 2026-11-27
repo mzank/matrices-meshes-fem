@@ -12,26 +12,20 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-Graph::Graph(std::vector<std::set<std::size_t>> const &node_to_neighbors)
-    : adj_(node_to_neighbors)
-{
-}
+Graph::Graph(std::vector<std::set<std::size_t>> const& node_to_neighbors)
+    : adj_(node_to_neighbors) {}
 
 //-----------------------------------------------------------------------------
-std::vector<std::set<std::size_t>> const &Graph::getAdjacency() const
-{
+std::vector<std::set<std::size_t>> const& Graph::getAdjacency() const {
     return adj_;
 }
 
 //-----------------------------------------------------------------------------
-void Graph::print() const
-{
+void Graph::print() const {
     std::cout << "Graph adjacency list:";
-    for (std::size_t v = 0; v < adj_.size(); ++v)
-    {
+    for (std::size_t v = 0; v < adj_.size(); ++v) {
         std::cout << "\nNode " << v << ": ";
-        for (std::size_t w : adj_[v])
-        {
+        for (std::size_t w : adj_[v]) {
             std::cout << w << " ";
         }
     }
