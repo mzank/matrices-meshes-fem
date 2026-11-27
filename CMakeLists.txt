@@ -11,8 +11,15 @@ include(GNUInstallDirs)
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
+option(BUILD_TESTING "Enable testing" OFF)
+option(ENABLE_CLANG_TIDY "Enable Clang-Tidy analysis" OFF)
+option(ENABLE_CLANG_EVERYTHING "Enable Clang's -Weverything preset" OFF)
+option(ENABLE_FORMAT_TARGETS "Add clang-format targets" OFF)
+option(ENABLE_FIRST_ERROR_ONLY "Stop compiling after the first error" OFF)
 option(ENABLE_NATIVE_ARCH "Use -march=native for CPU code" OFF)
 option(ENABLE_FAST_MATH "Enable fast-math optimizations" OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -26,6 +33,29 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 # -----------------------------------------------------------------------------
+# Clang-Tidy
+# -----------------------------------------------------------------------------
+if(ENABLE_CLANG_TIDY)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy")
+        message(FATAL_ERROR "ENABLE_CLANG_TIDY=ON but ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy is missing")
+    endif()
+
+    find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy
+        REQUIRED
+    )
+    mark_as_advanced(CLANG_TIDY_EXE)
+
+    set(MMF_CLANG_TIDY
+        "${CLANG_TIDY_EXE}"
+        "--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
+    )
+
+    message(STATUS "Clang-Tidy enabled: ${CLANG_TIDY_EXE}")
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Warning and optimization flags, shared by all targets
 # -----------------------------------------------------------------------------
 function(matrices_meshes_fem_set_compile_options target)
@@ -33,8 +63,37 @@ function(matrices_meshes_fem_set_compile_options target)
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wall>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wextra>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wpedantic>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wconversion>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wsign-conversion>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Weffc++>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Woverloaded-virtual>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wfloat-equal>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wshadow>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wredundant-decls>
         $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/W4>
     )
+
+    if(ENABLE_CLANG_EVERYTHING)
+        # Clang-only preset; appended after the portable flags so the -Wno-* suppressions win.
+        target_compile_options(${target} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Weverything>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-sign-conversion>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-c++98-compat>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-c++98-compat-pedantic>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-shorten-64-to-32>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-padded>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-unsafe-buffer-usage>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-exit-time-destructors>
+        )
+    endif()
+
+    if(ENABLE_FIRST_ERROR_ONLY)
+        # Diagnostic-only flag; opt in so normal builds still show all errors.
+        target_compile_options(${target} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fmax-errors=1>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-ferror-limit=1>
+        )
+    endif()
 
     if(ENABLE_NATIVE_ARCH)
         # MSVC has no direct equivalent of -march=native.
@@ -49,7 +108,64 @@ function(matrices_meshes_fem_set_compile_options target)
             $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/fp:fast>
         )
     endif()
+
+    # Apply Clang-Tidy only to project targets, not to fetched dependencies.
+    if(ENABLE_CLANG_TIDY)
+        set_target_properties(${target} PROPERTIES CXX_CLANG_TIDY "${MMF_CLANG_TIDY}")
+    endif()
 endfunction()
+
+
+# -----------------------------------------------------------------------------
+# Clang-Format
+# -----------------------------------------------------------------------------
+if(ENABLE_FORMAT_TARGETS)
+    find_program(CLANG_FORMAT_EXE
+        NAMES clang-format
+        REQUIRED
+    )
+    mark_as_advanced(CLANG_FORMAT_EXE)
+
+    set(MMF_CLANG_FORMAT_MIN_VERSION 18 CACHE STRING "Minimum clang-format major version")
+    execute_process(
+        COMMAND ${CLANG_FORMAT_EXE} --version
+        OUTPUT_VARIABLE MMF_CLANG_FORMAT_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(MMF_CLANG_FORMAT_VERSION MATCHES "version ([0-9]+)")
+        if(CMAKE_MATCH_1 LESS MMF_CLANG_FORMAT_MIN_VERSION)
+            message(FATAL_ERROR
+                "clang-format ${MMF_CLANG_FORMAT_MIN_VERSION} or newer is required "
+                "(found: ${MMF_CLANG_FORMAT_VERSION})")
+        endif()
+    else()
+        message(WARNING "Could not determine clang-format version; formatting may differ across versions.")
+    endif()
+
+    file(GLOB_RECURSE MMF_CXX_FILES CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h
+    )
+
+    add_custom_target(mmf-format
+        COMMAND ${CLANG_FORMAT_EXE} -i ${MMF_CXX_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Formatting C++ source files"
+    )
+
+    add_custom_target(mmf-format-check
+        COMMAND ${CLANG_FORMAT_EXE}
+        --dry-run
+        --Werror
+        ${MMF_CXX_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Checking C++ formatting"
+    )
+endif()
 
 
 # -----------------------------------------------------------------------------

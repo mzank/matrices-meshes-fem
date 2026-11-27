@@ -13,8 +13,7 @@
  * @struct Coord
  * @brief A struct to represent a 2D point by x and y components.
  */
-struct Coord
-{
+struct Coord {
     double x_; ///< The x-coordinate of the point.
     double y_; ///< The y-coordinate of the point.
 };

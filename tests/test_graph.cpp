@@ -1,25 +1,18 @@
+#include "capture_stdout.h"
+#include "matrices-meshes-fem/graph.h"
+
+#include <catch2/catch_test_macros.hpp>
 #include <cstddef>
-#include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <catch2/catch_test_macros.hpp>
-
-#include "capture_stdout.h"
-#include "matrices-meshes-fem/graph.h"
-
-TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")
-{
-    std::vector<std::set<std::size_t>> const input{
-        {1, 2},
-        {0},
-        {},
-        {3}};
+TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]") {
+    std::vector<std::set<std::size_t>> const input{{1, 2}, {0}, {}, {3}};
 
     Graph const graph(input);
-    auto const &adjacency = graph.getAdjacency();
+    auto const& adjacency = graph.getAdjacency();
 
     REQUIRE(adjacency.size() == 4);
     REQUIRE((adjacency[0] == std::set<std::size_t>{1, 2}));
@@ -32,8 +25,7 @@ TEST_CASE("Graph copies adjacency from node-to-neighbors mapping", "[graph]")
     REQUIRE(adjacency[1].count(2) == 0);
 }
 
-TEST_CASE("Graph owns its adjacency list", "[graph]")
-{
+TEST_CASE("Graph owns its adjacency list", "[graph]") {
     std::vector<std::set<std::size_t>> input{{1}, {}};
     Graph const graph(input);
 
@@ -45,16 +37,14 @@ TEST_CASE("Graph owns its adjacency list", "[graph]")
     REQUIRE(graph.getAdjacency()[1].empty());
 }
 
-TEST_CASE("Graph handles an empty node list", "[graph]")
-{
+TEST_CASE("Graph handles an empty node list", "[graph]") {
     std::vector<std::set<std::size_t>> const empty;
     Graph const graph(empty);
 
     REQUIRE(graph.getAdjacency().empty());
 }
 
-TEST_CASE("Graph prints its adjacency list", "[graph]")
-{
+TEST_CASE("Graph prints its adjacency list", "[graph]") {
     std::vector<std::set<std::size_t>> const input{{1, 2}, {0}, {}, {3}};
     Graph const graph(input);
 

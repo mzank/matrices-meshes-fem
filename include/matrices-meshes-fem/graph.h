@@ -20,8 +20,7 @@
  * Each node is connected to a set of neighboring nodes through directed edges.
  * An adjacency list is used, where each node maps to a set of node indices.
  */
-class Graph
-{
+class Graph {
 public:
     /**
      * @brief Constructs a directed graph using a node-to-neighbor mapping.
@@ -30,7 +29,7 @@ public:
      *        and the corresponding set contains indices of its neighboring nodes.
      *        Each neighbor represents a directed edge from the current node to that neighbor.
      */
-    Graph(std::vector<std::set<std::size_t>> const &node_to_neighbors);
+    Graph(std::vector<std::set<std::size_t>> const& node_to_neighbors);
 
     /**
      * @brief Destroys the graph.
@@ -44,7 +43,7 @@ public:
      *
      * @return A const reference to the adjacency list.
      */
-    std::vector<std::set<std::size_t>> const &getAdjacency() const;
+    std::vector<std::set<std::size_t>> const& getAdjacency() const;
 
     /**
      * @brief Prints the adjacency list.

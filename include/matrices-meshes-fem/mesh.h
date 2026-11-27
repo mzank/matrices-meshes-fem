@@ -9,6 +9,8 @@
 #ifndef MESH_H_INCLUDED
 #define MESH_H_INCLUDED
 
+#include "coord.h"
+
 #include <array>
 #include <cstddef>
 #include <map>
@@ -16,8 +18,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "coord.h"
 
 /**
  * @class Mesh
@@ -27,8 +27,7 @@
  * between mesh components (nodes, elements, edges), and calculate
  * point-to-triangle distance.
  */
-class Mesh
-{
+class Mesh {
 public:
     /**
      * @brief Constructs a Mesh object by reading node and element data from files.
@@ -47,13 +46,13 @@ public:
      *
      * @throws std::runtime_error if reading from either the node or element file fails.
      */
-    Mesh(std::string const &node_file, std::string const &element_file);
+    Mesh(std::string const& node_file, std::string const& element_file);
 
     /**
      * @brief Returns the list of node coordinates.
      * @return Constant reference to a vector of coordinates Coord.
      */
-    std::vector<Coord> const &getNodes() const;
+    std::vector<Coord> const& getNodes() const;
 
     /**
      * @brief Returns the number of nodes of the mesh.
@@ -66,7 +65,7 @@ public:
      * Each element is represented as an array of 3 node indices.
      * @return Constant reference to a vector of triangular elements.
      */
-    std::vector<std::array<std::size_t, 3>> const &getElements() const;
+    std::vector<std::array<std::size_t, 3>> const& getElements() const;
 
     /**
      * @brief Returns the number of elements of the mesh.
@@ -77,21 +76,23 @@ public:
     /**
      * @brief Returns the neighboring nodes for each node. The indices of the neighboring nodes are
      * in sorted order.
-     * @return Constant reference to a vector of sets, each set containing indices of neighboring nodes.
+     * @return Constant reference to a vector of sets, each set containing indices of neighboring
+     * nodes.
      */
-    std::vector<std::set<std::size_t>> const &getNodeNeighbors() const;
+    std::vector<std::set<std::size_t>> const& getNodeNeighbors() const;
 
     /**
      * @brief Returns the elements containing each node.
      * @return Constant reference to a vector where each entry lists the elements of that node.
      */
-    std::vector<std::vector<std::size_t>> const &getNodeToElements() const;
+    std::vector<std::vector<std::size_t>> const& getNodeToElements() const;
 
     /**
      * @brief Returns the elements containing each edge.
-     * @return Constant reference to a map from a sorted node pair to the elements sharing that edge.
+     * @return Constant reference to a map from a sorted node pair to the elements sharing that
+     * edge.
      */
-    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const &
+    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const&
     getEdgeToElements() const;
 
     /**
@@ -99,7 +100,7 @@ public:
      * Elements are neighbors when they share an edge.
      * @return Constant reference to a vector of sets of neighboring element indices.
      */
-    std::vector<std::set<std::size_t>> const &getElementNeighbors() const;
+    std::vector<std::set<std::size_t>> const& getElementNeighbors() const;
 
     /**
      * @brief Reads node coordinates from a file.
@@ -110,7 +111,7 @@ public:
      * @param node_file Path to the node file.
      * @return True if successful, false otherwise.
      */
-    bool readNodes(std::string const &node_file);
+    bool readNodes(std::string const& node_file);
 
     /**
      * @brief Reads element connectivity from a file.
@@ -121,7 +122,7 @@ public:
      * @param element_file Path to the element file.
      * @return True if successful, false otherwise.
      */
-    bool readElements(std::string const &element_file);
+    bool readElements(std::string const& element_file);
 
     /**
      * @brief Rebuilds the node-to-elements mapping from scratch.
@@ -187,7 +188,7 @@ public:
      * @param c Coordinates Coord of the third node of the triangle.
      * @return True if the point is inside the triangle, false otherwise.
      */
-    bool pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const;
+    bool pointInTriangle(Coord const& p, Coord const& a, Coord const& b, Coord const& c) const;
 
     /**
      * @brief Computes the shortest distance from a point to a line segment.
@@ -202,7 +203,7 @@ public:
      * @return Distance from the point to the segment. If both endpoints coincide,
      *         the segment degenerates to a point and the distance to that point is returned.
      */
-    double pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const;
+    double pointToSegmentDistance(Coord const& p, Coord const& a, Coord const& b) const;
 
     /**
      * @brief Computes the shortest distance from a point to a triangle.
@@ -212,14 +213,15 @@ public:
      * @param c Coordinates Coord of the third node of the triangle.
      * @return Distance from the point to the triangle.
      */
-    double pointToTriangleDistance(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const;
+    double pointToTriangleDistance(Coord const& p, Coord const& a, Coord const& b,
+                                   Coord const& c) const;
 
     /**
      * @brief Finds the triangular element with the shortest distance to a given point.
      * @param p The point.
      * @return A pair containing the index of the closest element and the distance.
      */
-    std::pair<std::size_t, double> findElementShortestDistanceToPoint(Coord const &p) const;
+    std::pair<std::size_t, double> findElementShortestDistanceToPoint(Coord const& p) const;
 
 private:
     /**
@@ -227,13 +229,17 @@ private:
      */
     void rebuildDerivedData();
 
-    std::vector<Coord> nodes_;                                                 ///< List of node coordinates.
-    std::size_t num_nodes_;                                                    ///< Number of nodes.
-    std::vector<std::array<std::size_t, 3>> elements_;                         ///< List of triangular elements.
-    std::size_t num_elements_;                                                 ///< Number of elements.
-    std::vector<std::vector<std::size_t>> node_to_elements_;                   ///< Node-to-Element mapping. Node is part of the triangular element.
-    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> edge_to_elements_; ///< Edge-to-element mapping. Edge is part of the triangular element.
-    std::vector<std::set<std::size_t>> element_neighbors_;                     ///< Neighboring elements for each element, sharing an edge.
-    std::vector<std::set<std::size_t>> node_neighbors_;                        ///< Neighboring nodes for each node, including itself.
+    std::vector<Coord> nodes_;                         ///< List of node coordinates.
+    std::size_t num_nodes_;                            ///< Number of nodes.
+    std::vector<std::array<std::size_t, 3>> elements_; ///< List of triangular elements.
+    std::size_t num_elements_;                         ///< Number of elements.
+    std::vector<std::vector<std::size_t>>
+        node_to_elements_; ///< Node-to-Element mapping. Node is part of the triangular element.
+    std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>>
+        edge_to_elements_; ///< Edge-to-element mapping. Edge is part of the triangular element.
+    std::vector<std::set<std::size_t>>
+        element_neighbors_; ///< Neighboring elements for each element, sharing an edge.
+    std::vector<std::set<std::size_t>>
+        node_neighbors_; ///< Neighboring nodes for each node, including itself.
 };
 #endif // MESH_H_INCLUDED

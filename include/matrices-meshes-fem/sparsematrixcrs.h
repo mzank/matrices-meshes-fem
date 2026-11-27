@@ -9,12 +9,12 @@
 #ifndef SPARSEMATRIXCRS_H_INCLUDED
 #define SPARSEMATRIXCRS_H_INCLUDED
 
+#include "weightedgraph.h"
+
 #include <cstddef>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "weightedgraph.h"
 
 /**
  * @class SparseMatrixCRS
@@ -24,8 +24,7 @@
  * printing and visualization of the sparsity pattern, and reading/writing in both ASCII
  * and binary formats.
  */
-class SparseMatrixCRS
-{
+class SparseMatrixCRS {
 public:
     /**
      * @brief Constructs an empty sparse matrix with the specified number of rows and columns.
@@ -67,9 +66,9 @@ public:
      * }
      * ```
      */
-    SparseMatrixCRS(std::size_t rows,
-                    std::size_t cols,
-                    std::vector<std::vector<std::pair<std::size_t, double>>> const &entries_per_row);
+    SparseMatrixCRS(
+        std::size_t rows, std::size_t cols,
+        std::vector<std::vector<std::pair<std::size_t, double>>> const& entries_per_row);
 
     /**
      * @brief Constructs a sparse matrix from a weighted graph.
@@ -85,7 +84,7 @@ public:
      * @note Diagonal weights are always included, even for nodes without a self-edge.
      * The columns within each row are sorted.
      */
-    SparseMatrixCRS(WeightedGraph const &graph);
+    SparseMatrixCRS(WeightedGraph const& graph);
 
     /**
      * @brief Prints the matrix.
@@ -98,9 +97,10 @@ public:
      * @param x A vector to multiply with. Its size must match the number of matrix columns.
      * @return Resulting vector after multiplication.
      *
-     * @throws std::runtime_error if the size of vector x does not match the number of matrix columns.
+     * @throws std::runtime_error if the size of vector x does not match the number of matrix
+     * columns.
      */
-    std::vector<double> multiply(std::vector<double> const &x) const;
+    std::vector<double> multiply(std::vector<double> const& x) const;
 
     /**
      * @brief Writes the matrix to an ASCII file.
@@ -110,7 +110,7 @@ public:
      * @throws std::runtime_error if the file cannot be opened for writing; the message
      *         includes `filename`.
      */
-    void writeASCII(std::string const &filename) const;
+    void writeASCII(std::string const& filename) const;
 
     /**
      * @brief Reads the matrix from an ASCII file.
@@ -132,7 +132,7 @@ public:
      * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data;
      *         the message includes `filename`.
      */
-    void readASCII(std::string const &filename);
+    void readASCII(std::string const& filename);
 
     /**
      * @brief Writes the matrix to a binary file.
@@ -146,7 +146,7 @@ public:
      * @throws std::runtime_error if the file cannot be opened for writing; the message
      *         includes `filename`.
      */
-    void writeBinary(std::string const &filename) const;
+    void writeBinary(std::string const& filename) const;
 
     /**
      * @brief Reads the matrix from a binary file.
@@ -170,7 +170,7 @@ public:
      * @throws std::runtime_error if the file cannot be opened or contains invalid CRS data;
      *         the message includes `filename`.
      */
-    void readBinary(std::string const &filename);
+    void readBinary(std::string const& filename);
 
     /**
      * @brief Prints the sparsity pattern of the matrix
@@ -189,18 +189,17 @@ private:
      *
      * @throws std::runtime_error if any invariant is violated.
      */
-    static void validateCRSData(std::size_t rows,
-                                std::size_t cols,
-                                std::vector<double> const &values,
-                                std::vector<std::size_t> const &col_idx,
-                                std::vector<std::size_t> const &row_ptr,
-                                std::string const &filename);
+    static void validateCRSData(std::size_t rows, std::size_t cols,
+                                std::vector<double> const& values,
+                                std::vector<std::size_t> const& col_idx,
+                                std::vector<std::size_t> const& row_ptr,
+                                std::string const& filename);
 
-    std::size_t num_rows_;                            ///< Number of rows in the matrix.
-    std::size_t num_cols_;                            ///< Number of columns in the matrix.
-    std::vector<double> values_;                      ///< Non-zero values in the matrix.
-    std::vector<std::size_t> col_idx_;                ///< Column indices corresponding to values_.
-    std::vector<std::size_t> row_ptr_;                ///< Row pointer to values_ and col_idx_.
+    std::size_t num_rows_;             ///< Number of rows in the matrix.
+    std::size_t num_cols_;             ///< Number of columns in the matrix.
+    std::vector<double> values_;       ///< Non-zero values in the matrix.
+    std::vector<std::size_t> col_idx_; ///< Column indices corresponding to values_.
+    std::vector<std::size_t> row_ptr_; ///< Row pointer to values_ and col_idx_.
 };
 
 #endif // SPARSEMATRIXCRS_H_INCLUDED

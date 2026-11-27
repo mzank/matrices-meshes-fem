@@ -1,5 +1,11 @@
+#include "capture_stdout.h"
+#include "matrices-meshes-fem/coord.h"
+#include "matrices-meshes-fem/graph.h"
+#include "matrices-meshes-fem/weightedgraph.h"
+
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <cstddef>
-#include <iostream>
 #include <limits>
 #include <set>
 #include <sstream>
@@ -8,36 +14,27 @@
 #include <type_traits>
 #include <vector>
 
-#include <catch2/catch_approx.hpp>
-#include <catch2/catch_test_macros.hpp>
+namespace {
+// Node 0 -> 1 has distance 1 (weight 1); node 0 -> 2 has distance 2 (weight 0.25).
+std::vector<std::set<std::size_t>> const& sampleNeighbors() {
+    static std::vector<std::set<std::size_t>> const neighbors{{0, 1, 2}, {0, 1}, {0}};
+    return neighbors;
+}
 
-#include "capture_stdout.h"
-#include "matrices-meshes-fem/coord.h"
-#include "matrices-meshes-fem/weightedgraph.h"
-
-namespace
-{
-    // Node 0 -> 1 has distance 1 (weight 1); node 0 -> 2 has distance 2 (weight 0.25).
-    std::vector<std::set<std::size_t>> const &sampleNeighbors()
-    {
-        static std::vector<std::set<std::size_t>> const neighbors{
-            {0, 1, 2},
-            {0, 1},
-            {0}};
-        return neighbors;
-    }
-
-    std::vector<Coord> const &sampleCoords()
-    {
-        static std::vector<Coord> const coords{{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}};
-        return coords;
-    }
+std::vector<Coord> const& sampleCoords() {
+    static std::vector<Coord> const coords{
+        {.x_ = 0.0, .y_ = 0.0},
+        {.x_ = 1.0, .y_ = 0.0},
+        {.x_ = 0.0, .y_ = 2.0},
+    };
+    return coords;
+}
 } // namespace
 
-TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal weights", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal weights",
+          "[weightedgraph]") {
     WeightedGraph const graph(sampleNeighbors(), sampleCoords());
-    auto const &weights = graph.getWeights();
+    auto const& weights = graph.getWeights();
 
     REQUIRE(weights.size() == 7);
 
@@ -51,8 +48,7 @@ TEST_CASE("WeightedGraph uses inverse squared distance and negative diagonal wei
     REQUIRE(weights.at({2, 2}) == Catch::Approx(-0.25));
 }
 
-TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weightedgraph]") {
     WeightedGraph const graph(sampleNeighbors(), sampleCoords());
 
     REQUIRE(graph.getWeights().count({1, 2}) == 0);
@@ -63,10 +59,9 @@ TEST_CASE("WeightedGraph keeps directed edges and inherited adjacency", "[weight
     REQUIRE((graph.getAdjacency()[2] == std::set<std::size_t>{0}));
 }
 
-TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors{{}, {0}};
-    std::vector<Coord> const coords{{0.0, 0.0}, {1.0, 0.0}};
+    std::vector<Coord> const coords{{.x_ = 0.0, .y_ = 0.0}, {.x_ = 1.0, .y_ = 0.0}};
     WeightedGraph const graph(neighbors, coords);
 
     REQUIRE(graph.getWeights().size() == 3);
@@ -75,8 +70,7 @@ TEST_CASE("WeightedGraph always inserts a diagonal weight", "[weightedgraph]")
     REQUIRE(graph.getWeights().at({1, 1}) == Catch::Approx(-1.0));
 }
 
-TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors;
     std::vector<Coord> const coords;
     WeightedGraph const graph(neighbors, coords);
@@ -85,41 +79,41 @@ TEST_CASE("WeightedGraph handles an empty graph", "[weightedgraph]")
     REQUIRE(graph.getWeights().empty());
 }
 
-TEST_CASE("WeightedGraph rejects a coordinate count mismatch", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph rejects a coordinate count mismatch", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors{{}, {0}};
-    std::vector<Coord> const coords{{0.0, 0.0}};
+    std::vector<Coord> const coords{{.x_ = 0.0, .y_ = 0.0}};
 
     REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
 }
 
-TEST_CASE("WeightedGraph rejects coincident connected nodes", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph rejects coincident connected nodes", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors{{0, 1}, {0}};
-    std::vector<Coord> const coords{{1.0, 2.0}, {1.0, 2.0}};
+    std::vector<Coord> const coords{{.x_ = 1.0, .y_ = 2.0}, {.x_ = 1.0, .y_ = 2.0}};
 
     REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
 }
 
-TEST_CASE("WeightedGraph rejects coincident nodes without an edge", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph rejects coincident nodes without an edge", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors{{}, {}};
-    std::vector<Coord> const coords{{1.0, 2.0}, {1.0, 2.0}};
+    std::vector<Coord> const coords{{.x_ = 1.0, .y_ = 2.0}, {.x_ = 1.0, .y_ = 2.0}};
 
     REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
 }
 
-TEST_CASE("WeightedGraph rejects NaN distances", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph rejects NaN distances", "[weightedgraph]") {
     std::vector<std::set<std::size_t>> const neighbors{{0, 1}, {0}};
     std::vector<Coord> const coords{
-        {0.0, 0.0}, {std::numeric_limits<double>::quiet_NaN(), 1.0}};
+        {.x_ = 0.0, .y_ = 0.0},
+        {
+            .x_ = std::numeric_limits<double>::quiet_NaN(),
+            .y_ = 1.0,
+        },
+    };
 
     REQUIRE_THROWS_AS(WeightedGraph(neighbors, coords), std::invalid_argument);
 }
 
-TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]") {
     WeightedGraph const graph(sampleNeighbors(), sampleCoords());
 
     std::ostringstream output;
@@ -134,12 +128,11 @@ TEST_CASE("WeightedGraph prints its edge-to-weight mapping", "[weightedgraph]")
     REQUIRE(text.find("(2, 2) -> -0.25\n") != std::string::npos);
 }
 
-TEST_CASE("WeightedGraph print is polymorphic", "[weightedgraph]")
-{
+TEST_CASE("WeightedGraph print is polymorphic", "[weightedgraph]") {
     static_assert(std::has_virtual_destructor_v<Graph>);
 
     WeightedGraph const graph(sampleNeighbors(), sampleCoords());
-    Graph const &base = graph;
+    Graph const& base = graph;
 
     std::ostringstream output;
     [[maybe_unused]] mmf_test::StdoutCapture const capture(output);

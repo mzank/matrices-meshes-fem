@@ -8,77 +8,77 @@
 
 #include "matrices-meshes-fem/mesh.h"
 
+#include "matrices-meshes-fem/coord.h"
+
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <set>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 //-----------------------------------------------------------------------------
-Mesh::Mesh(std::string const &node_file, std::string const &element_file)
-    : nodes_(), num_nodes_(0), elements_(), num_elements_(0), node_to_elements_(), edge_to_elements_(), element_neighbors_(), node_neighbors_()
-{
+Mesh::Mesh(std::string const& node_file, std::string const& element_file)
+    : nodes_(), num_nodes_(0), elements_(), num_elements_(0), node_to_elements_(),
+      edge_to_elements_(), element_neighbors_(), node_neighbors_() {
     if (!readNodes(node_file))
         throw std::runtime_error("Mesh constructor: Failed to read node file '" + node_file + "'");
 
     if (!readElements(element_file))
-        throw std::runtime_error("Mesh constructor: Failed to read element file '" + element_file + "'");
+        throw std::runtime_error("Mesh constructor: Failed to read element file '" + element_file +
+                                 "'");
 }
 
 //-----------------------------------------------------------------------------
-std::vector<Coord> const &Mesh::getNodes() const
-{
+std::vector<Coord> const& Mesh::getNodes() const {
     return nodes_;
 }
 
 //-----------------------------------------------------------------------------
-std::size_t Mesh::getNumNodes() const
-{
+std::size_t Mesh::getNumNodes() const {
     return num_nodes_;
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::array<std::size_t, 3>> const &Mesh::getElements() const
-{
+std::vector<std::array<std::size_t, 3>> const& Mesh::getElements() const {
     return elements_;
 }
 
 //-----------------------------------------------------------------------------
-std::size_t Mesh::getNumElements() const
-{
+std::size_t Mesh::getNumElements() const {
     return num_elements_;
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::set<std::size_t>> const &Mesh::getNodeNeighbors() const
-{
+std::vector<std::set<std::size_t>> const& Mesh::getNodeNeighbors() const {
     return node_neighbors_;
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::vector<std::size_t>> const &Mesh::getNodeToElements() const
-{
+std::vector<std::vector<std::size_t>> const& Mesh::getNodeToElements() const {
     return node_to_elements_;
 }
 
 //-----------------------------------------------------------------------------
-std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const &
-Mesh::getEdgeToElements() const
-{
+std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const&
+Mesh::getEdgeToElements() const {
     return edge_to_elements_;
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::set<std::size_t>> const &Mesh::getElementNeighbors() const
-{
+std::vector<std::set<std::size_t>> const& Mesh::getElementNeighbors() const {
     return element_neighbors_;
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::rebuildDerivedData()
-{
+void Mesh::rebuildDerivedData() {
     nodeToElements();
     edgeToElements();
     elementNeighbors();
@@ -86,41 +86,33 @@ void Mesh::rebuildDerivedData()
 }
 
 //-----------------------------------------------------------------------------
-bool Mesh::readNodes(std::string const &node_file)
-{
+bool Mesh::readNodes(std::string const& node_file) {
     std::ifstream coords_in(node_file);
-    if (!coords_in)
-    {
+    if (!coords_in) {
         std::cerr << "Failed to open coords file: " << node_file << "\n";
         return false;
     }
 
     std::size_t new_num_nodes{};
     coords_in >> new_num_nodes;
-    if (!coords_in)
-    {
+    if (!coords_in) {
         std::cerr << "Error reading number of nodes from: " << node_file << "\n";
         return false;
     }
 
     std::vector<Coord> new_nodes(new_num_nodes);
-    for (std::size_t i = 0; i < new_num_nodes; ++i)
-    {
+    for (std::size_t i = 0; i < new_num_nodes; ++i) {
         coords_in >> new_nodes[i].x_ >> new_nodes[i].y_;
-        if (!coords_in)
-        {
+        if (!coords_in) {
             std::cerr << "Error reading node " << i << " from: " << node_file << "\n";
             return false;
         }
     }
 
     // Existing elements must remain valid for the new node count.
-    for (auto const &element : elements_)
-    {
-        for (std::size_t const node : element)
-        {
-            if (node >= new_num_nodes)
-            {
+    for (auto const& element : elements_) {
+        for (std::size_t const node : element) {
+            if (node >= new_num_nodes) {
                 std::cerr << "Error reading nodes from: " << node_file
                           << ": element refers to node " << node << "\n";
                 return false;
@@ -135,37 +127,30 @@ bool Mesh::readNodes(std::string const &node_file)
 }
 
 //-----------------------------------------------------------------------------
-bool Mesh::readElements(std::string const &element_file)
-{
+bool Mesh::readElements(std::string const& element_file) {
     std::ifstream elem_in(element_file);
-    if (!elem_in)
-    {
+    if (!elem_in) {
         std::cerr << "Failed to open elements file: " << element_file << "\n";
         return false;
     }
 
     std::size_t new_num_elements{};
     elem_in >> new_num_elements;
-    if (!elem_in)
-    {
+    if (!elem_in) {
         std::cerr << "Error reading number of elements from: " << element_file << "\n";
         return false;
     }
 
     std::vector<std::array<std::size_t, 3>> new_elements(new_num_elements);
-    for (std::size_t i = 0; i < new_num_elements; ++i)
-    {
+    for (std::size_t i = 0; i < new_num_elements; ++i) {
         elem_in >> new_elements[i][0] >> new_elements[i][1] >> new_elements[i][2];
-        if (!elem_in)
-        {
+        if (!elem_in) {
             std::cerr << "Error reading element " << i << " from: " << element_file << "\n";
             return false;
         }
 
-        for (std::size_t const node : new_elements[i])
-        {
-            if (node >= num_nodes_)
-            {
+        for (std::size_t const node : new_elements[i]) {
+            if (node >= num_nodes_) {
                 std::cerr << "Error reading element " << i << " from: " << element_file
                           << ": node index out of range.\n";
                 return false;
@@ -180,22 +165,18 @@ bool Mesh::readElements(std::string const &element_file)
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::printSummary() const
-{
+void Mesh::printSummary() const {
     std::cout << "Mesh Summary:\n";
     std::cout << "Number of nodes: " << num_nodes_ << "\n";
     std::cout << "Number of elements: " << num_elements_ << "\n";
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::nodeToElements()
-{
+void Mesh::nodeToElements() {
     node_to_elements_.clear();
     node_to_elements_.resize(num_nodes_);
-    for (std::size_t e = 0; e < num_elements_; ++e)
-    {
-        for (std::size_t n = 0; n < 3; ++n)
-        {
+    for (std::size_t e = 0; e < num_elements_; ++e) {
+        for (std::size_t n = 0; n < 3; ++n) {
             std::size_t const node = elements_[e][n];
             node_to_elements_[node].push_back(e);
         }
@@ -203,11 +184,9 @@ void Mesh::nodeToElements()
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::printNodeToElements() const
-{
+void Mesh::printNodeToElements() const {
     std::cout << "Node -> Elements:\n";
-    for (std::size_t n = 0; n < num_nodes_; ++n)
-    {
+    for (std::size_t n = 0; n < num_nodes_; ++n) {
         std::cout << "Node " << n << ": ";
         for (auto const e : node_to_elements_[n])
             std::cout << e << " ";
@@ -216,15 +195,12 @@ void Mesh::printNodeToElements() const
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::edgeToElements()
-{
+void Mesh::edgeToElements() {
     edge_to_elements_.clear();
-    for (std::size_t e = 0; e < num_elements_; ++e)
-    {
-        auto const &nodes_el = elements_[e];
+    for (std::size_t e = 0; e < num_elements_; ++e) {
+        auto const& nodes_el = elements_[e];
         // Edges: (v0,v1), (v1,v2), (v2,v0)
-        for (std::size_t i = 0; i < 3; ++i)
-        {
+        for (std::size_t i = 0; i < 3; ++i) {
             std::size_t a = nodes_el[i];
             std::size_t b = nodes_el[(i + 1) % 3];
             // edges are stored such that smaller node index is the left edge index as in DG
@@ -236,17 +212,12 @@ void Mesh::edgeToElements()
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::printEdgeToElements() const
-{
+void Mesh::printEdgeToElements() const {
     std::cout << "\nEdge-to-elements mapping:";
-    for (auto const &entry : edge_to_elements_)
-    {
-        auto const &edge = entry.first;
-        auto const &elements = entry.second;
+    for (auto const& [edge, elements] : edge_to_elements_) {
 
         std::cout << "\nEdge (" << edge.first << ", " << edge.second << "): [";
-        for (std::size_t i = 0; i < elements.size(); ++i)
-        {
+        for (std::size_t i = 0; i < elements.size(); ++i) {
             std::cout << elements[i];
             if (i + 1 < elements.size())
                 std::cout << ", ";
@@ -257,16 +228,14 @@ void Mesh::printEdgeToElements() const
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::elementNeighbors()
-{
+void Mesh::elementNeighbors() {
     element_neighbors_.clear();
     element_neighbors_.resize(num_elements_);
-    for (auto const &[edge, elems] : edge_to_elements_)
-    {
+    for (auto const& [edge, elems] : edge_to_elements_) {
         // if edge is part of two elements
-        if (elems.size() == 2)
-        {
-            std::size_t const e1 = elems[0], e2 = elems[1];
+        if (elems.size() == 2) {
+            std::size_t const e1 = elems[0];
+            std::size_t const e2 = elems[1];
             element_neighbors_[e1].insert(e2);
             element_neighbors_[e2].insert(e1);
         }
@@ -276,11 +245,9 @@ void Mesh::elementNeighbors()
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::printElementNeighbors() const
-{
+void Mesh::printElementNeighbors() const {
     std::cout << "\nElement -> Neighbors:";
-    for (std::size_t e = 0; e < num_elements_; ++e)
-    {
+    for (std::size_t e = 0; e < num_elements_; ++e) {
         std::cout << "\nElement " << e << ": ";
         for (auto const n : element_neighbors_[e])
             std::cout << n << " ";
@@ -289,20 +256,16 @@ void Mesh::printElementNeighbors() const
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::nodeNeighbors()
-{
+void Mesh::nodeNeighbors() {
     node_neighbors_.clear();
     node_neighbors_.resize(num_nodes_);
-    for (std::size_t i = 0; i < num_nodes_; ++i)
-    {
+    for (std::size_t i = 0; i < num_nodes_; ++i) {
         node_neighbors_[i].insert(i);
     }
 
-    for (std::size_t e = 0; e < num_elements_; ++e)
-    {
-        auto const &nodes_el = elements_[e];
-        for (std::size_t i = 0; i < 3; ++i)
-        {
+    for (std::size_t e = 0; e < num_elements_; ++e) {
+        auto const& nodes_el = elements_[e];
+        for (std::size_t i = 0; i < 3; ++i) {
             std::size_t const n1 = nodes_el[i];
             std::size_t const n2 = nodes_el[(i + 1) % 3];
             node_neighbors_[n1].insert(n2);
@@ -312,11 +275,9 @@ void Mesh::nodeNeighbors()
 }
 
 //-----------------------------------------------------------------------------
-void Mesh::printNodeNeighbors() const
-{
+void Mesh::printNodeNeighbors() const {
     std::cout << "\nNode -> Neighboring Nodes:";
-    for (std::size_t n = 0; n < num_nodes_; ++n)
-    {
+    for (std::size_t n = 0; n < num_nodes_; ++n) {
         std::cout << "\nNode " << n << ": ";
         for (auto const nb : node_neighbors_[n])
             std::cout << nb << " ";
@@ -325,12 +286,11 @@ void Mesh::printNodeNeighbors() const
 }
 
 //-----------------------------------------------------------------------------
-bool Mesh::pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const
-{
+bool Mesh::pointInTriangle(Coord const& p, Coord const& a, Coord const& b, Coord const& c) const {
     // calculate cross products bp x ba, cp x cb, ap x ac
-    double const d1 = (p.x_ - b.x_) * (a.y_ - b.y_) - (p.y_ - b.y_) * (a.x_ - b.x_);
-    double const d2 = (p.x_ - c.x_) * (b.y_ - c.y_) - (p.y_ - c.y_) * (b.x_ - c.x_);
-    double const d3 = (p.x_ - a.x_) * (c.y_ - a.y_) - (p.y_ - a.y_) * (c.x_ - a.x_);
+    double const d1 = ((p.x_ - b.x_) * (a.y_ - b.y_)) - ((p.y_ - b.y_) * (a.x_ - b.x_));
+    double const d2 = ((p.x_ - c.x_) * (b.y_ - c.y_)) - ((p.y_ - c.y_) * (b.x_ - c.x_));
+    double const d3 = ((p.x_ - a.x_) * (c.y_ - a.y_)) - ((p.y_ - a.y_) * (c.x_ - a.x_));
 
     // sign of the cross products
     bool const sign_negative = (d1 < 0) || (d2 < 0) || (d3 < 0);
@@ -341,26 +301,26 @@ bool Mesh::pointInTriangle(Coord const &p, Coord const &a, Coord const &b, Coord
 }
 
 //-----------------------------------------------------------------------------
-double Mesh::pointToSegmentDistance(Coord const &p, Coord const &a, Coord const &b) const
-{
-    Coord const ab{b.x_ - a.x_, b.y_ - a.y_};
-    Coord const ap{p.x_ - a.x_, p.y_ - a.y_};
-    double const ab_squared_norm = ab.x_ * ab.x_ + ab.y_ * ab.y_;
+double Mesh::pointToSegmentDistance(Coord const& p, Coord const& a, Coord const& b) const {
+    Coord const ab{.x_ = b.x_ - a.x_, .y_ = b.y_ - a.y_};
+    Coord const ap{.x_ = p.x_ - a.x_, .y_ = p.y_ - a.y_};
+    double const ab_squared_norm = (ab.x_ * ab.x_) + (ab.y_ * ab.y_);
 
     // A degenerate segment is just a point; there is no direction to project onto.
     if (!(ab_squared_norm > 0.0))
         return std::hypot(p.x_ - a.x_, p.y_ - a.y_);
 
-    double t = (ap.x_ * ab.x_ + ap.y_ * ab.y_) / ab_squared_norm;
+    double t = ((ap.x_ * ab.x_) + (ap.y_ * ab.y_)) / ab_squared_norm;
     t = std::max(0.0, std::min(1.0, t)); // clamping t to [0,1]
 
-    Coord const projection{a.x_ + t * ab.x_, a.y_ + t * ab.y_};
-    return std::hypot(p.x_ - projection.x_, p.y_ - projection.y_); // calculating the norm |p - projection|
+    Coord const projection{.x_ = a.x_ + (t * ab.x_), .y_ = a.y_ + (t * ab.y_)};
+    return std::hypot(p.x_ - projection.x_,
+                      p.y_ - projection.y_); // calculating the norm |p - projection|
 }
 
 //-----------------------------------------------------------------------------
-double Mesh::pointToTriangleDistance(Coord const &p, Coord const &a, Coord const &b, Coord const &c) const
-{
+double Mesh::pointToTriangleDistance(Coord const& p, Coord const& a, Coord const& b,
+                                     Coord const& c) const {
     if (pointInTriangle(p, a, b, c))
         return 0.0;
 
@@ -372,13 +332,9 @@ double Mesh::pointToTriangleDistance(Coord const &p, Coord const &a, Coord const
 }
 
 //-----------------------------------------------------------------------------
-std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(Coord const &p) const
-{
-    auto const distance = [this, &p](auto const &element)
-    {
-        return pointToTriangleDistance(p,
-                                       nodes_[element[0]],
-                                       nodes_[element[1]],
+std::pair<std::size_t, double> Mesh::findElementShortestDistanceToPoint(Coord const& p) const {
+    auto const distance = [this, &p](auto const& element) {
+        return pointToTriangleDistance(p, nodes_[element[0]], nodes_[element[1]],
                                        nodes_[element[2]]);
     };
 

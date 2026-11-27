@@ -9,14 +9,14 @@
 #ifndef WEIGHTEDGRAPH_H_INCLUDED
 #define WEIGHTEDGRAPH_H_INCLUDED
 
+#include "coord.h"
+#include "graph.h"
+
 #include <cstddef>
 #include <map>
 #include <set>
 #include <utility>
 #include <vector>
-
-#include "coord.h"
-#include "graph.h"
 
 /**
  * @class WeightedGraph
@@ -24,8 +24,7 @@
  *
  * This class extends the Graph class by associating weights to edges.
  */
-class WeightedGraph : public Graph
-{
+class WeightedGraph : public Graph {
 public:
     /**
      * @brief Constructs a WeightedGraph from a node-to-neighbor mapping.
@@ -48,13 +47,13 @@ public:
      *         of nodes, if any two nodes share the same coordinates, or if a connected
      *         pair has an invalid distance.
      */
-    WeightedGraph(std::vector<std::set<std::size_t>> const &node_to_neighbors,
-                  std::vector<Coord> const &coords);
+    WeightedGraph(std::vector<std::set<std::size_t>> const& node_to_neighbors,
+                  std::vector<Coord> const& coords);
 
     /**
      * @brief Returns the edge-to-weight mapping.
      */
-    std::map<std::pair<std::size_t, std::size_t>, double> const &getWeights() const;
+    std::map<std::pair<std::size_t, std::size_t>, double> const& getWeights() const;
 
     /**
      * @brief Prints the edge-to-weight mapping.
