@@ -9,7 +9,6 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <set>
 #include <sstream>
@@ -115,7 +114,8 @@ TEST_CASE("Mesh mapping builders produce expected mappings", "[mesh]") {
 
     std::map<std::pair<std::size_t, std::size_t>, std::vector<std::size_t>> const expected_edges{
         {{0, 1}, {0}},    {{0, 2}, {0}}, {{1, 2}, {0, 1}}, {{1, 3}, {1}},
-        {{2, 3}, {1, 2}}, {{2, 4}, {2}}, {{3, 4}, {2}}};
+        {{2, 3}, {1, 2}}, {{2, 4}, {2}}, {{3, 4}, {2}},
+    };
     REQUIRE(mesh.getEdgeToElements() == expected_edges);
 
     auto const& element_neighbors = mesh.getElementNeighbors();
@@ -197,9 +197,9 @@ TEST_CASE("Mesh file readers rebuild derived mappings and are transactional", "[
 
 TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]") {
     Mesh const mesh(dataPath("3x3_coords_2d.txt"), dataPath("3x3_elements_2d.txt"));
-    Coord const a{0.0, 0.0};
-    Coord const b{1.0, 0.0};
-    Coord const c{0.0, 1.0};
+    Coord const a{.x_ = 0.0, .y_ = 0.0};
+    Coord const b{.x_ = 1.0, .y_ = 0.0};
+    Coord const c{.x_ = 0.0, .y_ = 1.0};
 
     SECTION("pointInTriangle detects inside and outside points") {
         REQUIRE(mesh.pointInTriangle({0.25, 0.25}, a, b, c));
@@ -238,7 +238,7 @@ TEST_CASE("Mesh point and triangle geometry helpers", "[mesh]") {
         auto const& element = mesh.getElements()[closest.first];
         REQUIRE((element[0] == 0 || element[1] == 0 || element[2] == 0));
 
-        auto const far = mesh.findElementShortestDistanceToPoint({-1.0, -2.0});
+        auto const far = mesh.findElementShortestDistanceToPoint({.x_ = -1.0, .y_ = -2.0});
         REQUIRE(far.first < mesh.getNumElements());
         REQUIRE(far.second > 0.0);
     }

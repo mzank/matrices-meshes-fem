@@ -19,7 +19,6 @@
 #include <string>
 #include <system_error>
 #include <unistd.h>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -34,15 +33,15 @@ std::string uniqueSuffix() {
 
 struct TempFile {
     explicit TempFile(std::string const& name)
-        : path(std::filesystem::temp_directory_path() /
-               ("mmf_sparse_" + name + "_" + uniqueSuffix() + ".dat")) {}
+        : path_(std::filesystem::temp_directory_path() /
+                ("mmf_sparse_" + name + "_" + uniqueSuffix() + ".dat")) {}
 
     ~TempFile() {
         std::error_code error;
-        std::filesystem::remove(path, error);
+        std::filesystem::remove(path_, error);
     }
 
-    std::filesystem::path path;
+    std::filesystem::path path_;
 };
 
 void writeTextFile(std::filesystem::path const& path, std::string const& content) {
@@ -96,8 +95,12 @@ SparseMatrixCRS sampleMatrix() {
 
 WeightedGraph sampleWeightedGraph() {
     std::vector<std::set<std::size_t>> const neighbors{{0, 1, 2}, {0, 1}, {0}};
-    std::vector<Coord> const coords{{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}};
-    return WeightedGraph(neighbors, coords);
+    std::vector<Coord> const coords{
+        {.x_ = 0.0, .y_ = 0.0},
+        {.x_ = 1.0, .y_ = 0.0},
+        {.x_ = 0.0, .y_ = 2.0},
+    };
+    return {neighbors, coords};
 }
 
 void requireEqual(std::vector<double> const& actual, std::vector<double> const& expected) {
@@ -181,15 +184,15 @@ TEST_CASE("SparseMatrixCRS round-trips through ASCII", "[sparsematrixcrs]") {
     SparseMatrixCRS const original = sampleMatrix();
     std::vector<double> const x{1.0, 2.0, 3.0};
 
-    original.writeASCII(file.path.string());
+    original.writeASCII(file.path_.string());
 
-    std::ifstream input(file.path);
+    std::ifstream input(file.path_);
     std::string header;
     std::getline(input, header);
     REQUIRE(header == "3 3 3");
 
     SparseMatrixCRS restored(1, 1);
-    restored.readASCII(file.path.string());
+    restored.readASCII(file.path_.string());
     requireEqual(restored.multiply(x), original.multiply(x));
 }
 
@@ -198,10 +201,10 @@ TEST_CASE("SparseMatrixCRS round-trips through binary", "[sparsematrixcrs]") {
     SparseMatrixCRS const original = sampleMatrix();
     std::vector<double> const x{1.0, 2.0, 3.0};
 
-    original.writeBinary(file.path.string());
+    original.writeBinary(file.path_.string());
 
     SparseMatrixCRS restored(1, 1);
-    restored.readBinary(file.path.string());
+    restored.readBinary(file.path_.string());
     requireEqual(restored.multiply(x), original.multiply(x));
 }
 
@@ -215,20 +218,20 @@ TEST_CASE("SparseMatrixCRS round-trips empty and zero-dimension matrices", "[spa
         std::vector<double> const x(cols, 2.0);
         auto const expected = original.multiply(x);
 
-        original.writeASCII(ascii.path.string());
-        original.writeBinary(binary.path.string());
+        original.writeASCII(ascii.path_.string());
+        original.writeBinary(binary.path_.string());
 
-        std::ifstream input(ascii.path);
+        std::ifstream input(ascii.path_);
         std::string header;
         std::getline(input, header);
         REQUIRE(header == std::to_string(rows) + " " + std::to_string(cols) + " 0");
 
         SparseMatrixCRS restored_ascii(1, 1);
-        restored_ascii.readASCII(ascii.path.string());
+        restored_ascii.readASCII(ascii.path_.string());
         requireEqual(restored_ascii.multiply(x), expected);
 
         SparseMatrixCRS restored_binary(1, 1);
-        restored_binary.readBinary(binary.path.string());
+        restored_binary.readBinary(binary.path_.string());
         requireEqual(restored_binary.multiply(x), expected);
     };
 
@@ -274,80 +277,80 @@ TEST_CASE("SparseMatrixCRS rejects malformed CRS files", "[sparsematrixcrs]") {
 
     SECTION("ASCII header is truncated") {
         TempFile file("ascii_truncated_header");
-        writeTextFile(file.path, "3 3");
+        writeTextFile(file.path_, "3 3");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("ASCII values are truncated") {
         TempFile file("ascii_truncated_values");
-        writeTextFile(file.path, "2 2 2\n1\n0 1\n0 1 2\n");
+        writeTextFile(file.path_, "2 2 2\n1\n0 1\n0 1 2\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("ASCII column index is out of range") {
         TempFile file("ascii_bad_column");
-        writeTextFile(file.path, "2 2 1\n5\n2\n0 1 1\n");
+        writeTextFile(file.path_, "2 2 1\n5\n2\n0 1 1\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("ASCII row pointer is not monotonic") {
         TempFile file("ascii_bad_row_ptr");
-        writeTextFile(file.path, "2 2 2\n1 2\n0 1\n0 3 2 3\n");
+        writeTextFile(file.path_, "2 2 2\n1 2\n0 1\n0 3 2 3\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("ASCII columns are unsorted") {
         TempFile file("ascii_unsorted_columns");
-        writeTextFile(file.path, "2 2 2\n1 2\n1 0\n0 2 2\n");
+        writeTextFile(file.path_, "2 2 2\n1 2\n1 0\n0 2 2\n");
 
-        REQUIRE_THROWS_WITH(matrix.readASCII(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readASCII(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("binary data is truncated") {
         TempFile file("binary_truncated");
-        sampleMatrix().writeBinary(file.path.string());
-        std::filesystem::resize_file(file.path, 40);
+        sampleMatrix().writeBinary(file.path_.string());
+        std::filesystem::resize_file(file.path_, 40);
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("binary column index is out of range") {
         TempFile file("binary_bad_column");
-        sampleMatrix().writeBinary(file.path.string());
+        sampleMatrix().writeBinary(file.path_.string());
 
         std::size_t const bad_column = 99;
-        std::ofstream out(file.path, std::ios::binary | std::ios::in | std::ios::out);
-        out.seekp(static_cast<std::streamoff>(3 * sizeof(std::size_t) + 3 * sizeof(double)));
+        std::ofstream out(file.path_, std::ios::binary | std::ios::in | std::ios::out);
+        out.seekp(static_cast<std::streamoff>((3 * sizeof(std::size_t)) + (3 * sizeof(double))));
         out.write(reinterpret_cast<char const*>(&bad_column), sizeof(bad_column));
         out.close();
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("binary row pointer is not monotonic") {
         TempFile file("binary_bad_row_ptr");
-        writeBinaryFile(file.path, 2, 2, {1.0, 2.0}, {0, 1}, {0, 2, 1});
+        writeBinaryFile(file.path_, 2, 2, {1.0, 2.0}, {0, 1}, {0, 2, 1});
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 
     SECTION("binary columns are unsorted") {
         TempFile file("binary_unsorted_columns");
-        writeBinaryFile(file.path, 2, 2, {1.0, 2.0}, {1, 0}, {0, 2, 2});
+        writeBinaryFile(file.path_, 2, 2, {1.0, 2.0}, {1, 0}, {0, 2, 2});
 
-        REQUIRE_THROWS_WITH(matrix.readBinary(file.path.string()), invalidCRSFile(file.path));
+        REQUIRE_THROWS_WITH(matrix.readBinary(file.path_.string()), invalidCRSFile(file.path_));
         requireUnchanged();
     }
 }
