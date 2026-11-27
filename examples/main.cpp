@@ -88,13 +88,17 @@ int main(int argc, char* argv[]) {
 
         std::cout << "\n------------------------------------ Point-to-element distances "
                      "-----------------\n";
-        constexpr std::array<Coord, 7> points{{{.x_ = 0.2, .y_ = 0.3},
-                                               {.x_ = 0.0, .y_ = 0.333333},
-                                               {.x_ = 0.2, .y_ = -1.0},
-                                               {.x_ = 2.0, .y_ = 0.3},
-                                               {.x_ = 0.2, .y_ = 3.0},
-                                               {.x_ = -0.2, .y_ = 0.3},
-                                               {.x_ = -1.0, .y_ = -2.0},},};
+        constexpr std::array<Coord, 7> points{
+            {
+                {.x_ = 0.2, .y_ = 0.3},
+                {.x_ = 0.0, .y_ = 0.333333},
+                {.x_ = 0.2, .y_ = -1.0},
+                {.x_ = 2.0, .y_ = 0.3},
+                {.x_ = 0.2, .y_ = 3.0},
+                {.x_ = -0.2, .y_ = 0.3},
+                {.x_ = -1.0, .y_ = -2.0},
+            },
+        };
 
         for (Coord const& p : points) {
             std::pair<std::size_t, double> const element_distance_min =
@@ -142,7 +146,8 @@ int main(int argc, char* argv[]) {
             {{1, -3.2}, {3, 2.1}},
             {{2, -5.1}},
             {{0, 7.2}, {1, 6.2}, {2, -4.4}, {3, 2.3}},
-            {{0, -2.0}, {1, 3.0}, {3, 2.0}},};
+            {{0, -2.0}, {1, 3.0}, {3, 2.0}},
+        };
         std::size_t const num_rows = 4;
         std::size_t const num_cols = 4;
         SparseMatrixCRS matrix_test(num_rows, num_cols, entries_per_row);

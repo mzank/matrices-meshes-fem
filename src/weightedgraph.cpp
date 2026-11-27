@@ -6,9 +6,10 @@
  * @brief Represents a weighted directed graph.
  */
 
+#include "matrices-meshes-fem/weightedgraph.h"
+
 #include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/graph.h"
-#include "matrices-meshes-fem/weightedgraph.h"
 
 #include <algorithm>
 #include <cstddef>

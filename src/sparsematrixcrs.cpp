@@ -7,6 +7,7 @@
  */
 
 #include "matrices-meshes-fem/sparsematrixcrs.h"
+
 #include "matrices-meshes-fem/weightedgraph.h"
 
 #include <cstddef>

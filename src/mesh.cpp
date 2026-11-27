@@ -6,8 +6,9 @@
  * @brief Represents a 2D triangular mesh consisting of nodes and elements.
  */
 
-#include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/mesh.h"
+
+#include "matrices-meshes-fem/coord.h"
 
 #include <algorithm>
 #include <array>
