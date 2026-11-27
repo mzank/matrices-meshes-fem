@@ -6,20 +6,26 @@
  * @brief Represents a 2D triangular mesh consisting of nodes and elements.
  */
 
+#include "matrices-meshes-fem/coord.h"
 #include "matrices-meshes-fem/mesh.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <set>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 //-----------------------------------------------------------------------------
 Mesh::Mesh(std::string const& node_file, std::string const& element_file)
-    : nodes_(), num_nodes_(0), elements_(), num_elements_(0), node_to_elements_(),
-      edge_to_elements_(), element_neighbors_(), node_neighbors_() {
+    : num_nodes_(0), num_elements_(0) {
     if (!readNodes(node_file))
         throw std::runtime_error("Mesh constructor: Failed to read node file '" + node_file + "'");
 
@@ -206,9 +212,7 @@ void Mesh::edgeToElements() {
 //-----------------------------------------------------------------------------
 void Mesh::printEdgeToElements() const {
     std::cout << "\nEdge-to-elements mapping:";
-    for (auto const& entry : edge_to_elements_) {
-        auto const& edge = entry.first;
-        auto const& elements = entry.second;
+    for (auto const& [edge, elements] : edge_to_elements_) {
 
         std::cout << "\nEdge (" << edge.first << ", " << edge.second << "): [";
         for (std::size_t i = 0; i < elements.size(); ++i) {
@@ -228,7 +232,8 @@ void Mesh::elementNeighbors() {
     for (auto const& [edge, elems] : edge_to_elements_) {
         // if edge is part of two elements
         if (elems.size() == 2) {
-            std::size_t const e1 = elems[0], e2 = elems[1];
+            std::size_t const e1 = elems[0];
+            std::size_t const e2 = elems[1];
             element_neighbors_[e1].insert(e2);
             element_neighbors_[e2].insert(e1);
         }
@@ -281,9 +286,9 @@ void Mesh::printNodeNeighbors() const {
 //-----------------------------------------------------------------------------
 bool Mesh::pointInTriangle(Coord const& p, Coord const& a, Coord const& b, Coord const& c) const {
     // calculate cross products bp x ba, cp x cb, ap x ac
-    double const d1 = (p.x_ - b.x_) * (a.y_ - b.y_) - (p.y_ - b.y_) * (a.x_ - b.x_);
-    double const d2 = (p.x_ - c.x_) * (b.y_ - c.y_) - (p.y_ - c.y_) * (b.x_ - c.x_);
-    double const d3 = (p.x_ - a.x_) * (c.y_ - a.y_) - (p.y_ - a.y_) * (c.x_ - a.x_);
+    double const d1 = ((p.x_ - b.x_) * (a.y_ - b.y_)) - ((p.y_ - b.y_) * (a.x_ - b.x_));
+    double const d2 = ((p.x_ - c.x_) * (b.y_ - c.y_)) - ((p.y_ - c.y_) * (b.x_ - c.x_));
+    double const d3 = ((p.x_ - a.x_) * (c.y_ - a.y_)) - ((p.y_ - a.y_) * (c.x_ - a.x_));
 
     // sign of the cross products
     bool const sign_negative = (d1 < 0) || (d2 < 0) || (d3 < 0);
@@ -295,18 +300,18 @@ bool Mesh::pointInTriangle(Coord const& p, Coord const& a, Coord const& b, Coord
 
 //-----------------------------------------------------------------------------
 double Mesh::pointToSegmentDistance(Coord const& p, Coord const& a, Coord const& b) const {
-    Coord const ab{b.x_ - a.x_, b.y_ - a.y_};
-    Coord const ap{p.x_ - a.x_, p.y_ - a.y_};
-    double const ab_squared_norm = ab.x_ * ab.x_ + ab.y_ * ab.y_;
+    Coord const ab{.x_ = b.x_ - a.x_, .y_ = b.y_ - a.y_};
+    Coord const ap{.x_ = p.x_ - a.x_, .y_ = p.y_ - a.y_};
+    double const ab_squared_norm = (ab.x_ * ab.x_) + (ab.y_ * ab.y_);
 
     // A degenerate segment is just a point; there is no direction to project onto.
     if (!(ab_squared_norm > 0.0))
         return std::hypot(p.x_ - a.x_, p.y_ - a.y_);
 
-    double t = (ap.x_ * ab.x_ + ap.y_ * ab.y_) / ab_squared_norm;
+    double t = ((ap.x_ * ab.x_) + (ap.y_ * ab.y_)) / ab_squared_norm;
     t = std::max(0.0, std::min(1.0, t)); // clamping t to [0,1]
 
-    Coord const projection{a.x_ + t * ab.x_, a.y_ + t * ab.y_};
+    Coord const projection{.x_ = a.x_ + (t * ab.x_), .y_ = a.y_ + (t * ab.y_)};
     return std::hypot(p.x_ - projection.x_,
                       p.y_ - projection.y_); // calculating the norm |p - projection|
 }

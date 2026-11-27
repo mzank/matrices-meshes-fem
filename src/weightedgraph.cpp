@@ -6,21 +6,25 @@
  * @brief Represents a weighted directed graph.
  */
 
+#include "matrices-meshes-fem/coord.h"
+#include "matrices-meshes-fem/graph.h"
 #include "matrices-meshes-fem/weightedgraph.h"
 
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <map>
 #include <numeric>
 #include <ranges>
 #include <set>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 //-----------------------------------------------------------------------------
 WeightedGraph::WeightedGraph(std::vector<std::set<std::size_t>> const& node_to_neighbors,
                              std::vector<Coord> const& coords)
-    : Graph(node_to_neighbors), weights_() {
+    : Graph(node_to_neighbors) {
     if (coords.size() != adj_.size())
         throw std::invalid_argument("Number of coordinates must match number of nodes");
 
@@ -40,7 +44,7 @@ WeightedGraph::WeightedGraph(std::vector<std::set<std::size_t>> const& node_to_n
 
                     double const dx = coords[v].x_ - coords[w].x_;
                     double const dy = coords[v].y_ - coords[w].y_;
-                    double const squared_distance = dx * dx + dy * dy;
+                    double const squared_distance = (dx * dx) + (dy * dy);
                     if (!(squared_distance > 0.0))
                         throw std::invalid_argument("Invalid distance between connected nodes");
 

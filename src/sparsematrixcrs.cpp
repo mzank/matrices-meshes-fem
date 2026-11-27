@@ -7,24 +7,27 @@
  */
 
 #include "matrices-meshes-fem/sparsematrixcrs.h"
+#include "matrices-meshes-fem/weightedgraph.h"
 
-#include <algorithm>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(std::size_t rows, std::size_t cols)
-    : num_rows_(rows), num_cols_(cols), values_(), col_idx_(), row_ptr_(rows + 1, 0) {}
+    : num_rows_(rows), num_cols_(cols), row_ptr_(rows + 1, 0) {}
 
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(
     std::size_t rows, std::size_t cols,
     std::vector<std::vector<std::pair<std::size_t, double>>> const& entries_per_row)
-    : num_rows_(rows), num_cols_(cols), values_(), col_idx_(), row_ptr_{0} // initial row offset
+    : num_rows_(rows), num_cols_(cols), row_ptr_{0} // initial row offset
 {
     // Validate the number of supplied rows.
     if (entries_per_row.size() > rows) {
@@ -74,7 +77,7 @@ SparseMatrixCRS::SparseMatrixCRS(
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const& graph)
     : num_rows_(graph.getAdjacency().size()), num_cols_(num_rows_), // Assuming square matrix
-      values_(), col_idx_(), row_ptr_{0}                            // initial row offset
+      row_ptr_{0}                                                   // initial row offset
 {
     auto const& weights = graph.getWeights();
 

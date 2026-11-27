@@ -10,6 +10,8 @@
 
 #include <cstddef>
 #include <iostream>
+#include <set>
+#include <vector>
 
 //-----------------------------------------------------------------------------
 Graph::Graph(std::vector<std::set<std::size_t>> const& node_to_neighbors)
