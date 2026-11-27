@@ -12,6 +12,7 @@ Checks: >
   -readability-identifier-length,
   -readability-braces-around-statements,
   -readability-function-cognitive-complexity,
+  -readability-convert-member-functions-to-static,
   misc-include-cleaner
 
 WarningsAsErrors: ''
