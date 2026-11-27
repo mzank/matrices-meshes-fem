@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 # -----------------------------------------------------------------------------
 option(BUILD_TESTING "Enable testing" OFF)
 option(ENABLE_CLANG_TIDY "Enable Clang-Tidy analysis" OFF)
+option(ENABLE_CLANG_EVERYTHING "Enable Clang's -Weverything preset" OFF)
 option(ENABLE_FORMAT_TARGETS "Add clang-format targets" OFF)
 option(ENABLE_FIRST_ERROR_ONLY "Stop compiling after the first error" OFF)
 option(ENABLE_NATIVE_ARCH "Use -march=native for CPU code" OFF)
@@ -72,10 +73,25 @@ function(matrices_meshes_fem_set_compile_options target)
         $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/W4>
     )
 
+    if(ENABLE_CLANG_EVERYTHING)
+        # Clang-only preset; appended after the portable flags so the -Wno-* suppressions win.
+        target_compile_options(${target} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Weverything>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-sign-conversion>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-c++98-compat>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-c++98-compat-pedantic>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-shorten-64-to-32>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-padded>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-unsafe-buffer-usage>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-exit-time-destructors>
+        )
+    endif()
+
     if(ENABLE_FIRST_ERROR_ONLY)
         # Diagnostic-only flag; opt in so normal builds still show all errors.
         target_compile_options(${target} PRIVATE
-            $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-fmax-errors=1>
+            $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fmax-errors=1>
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-ferror-limit=1>
         )
     endif()
 
