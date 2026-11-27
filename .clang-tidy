@@ -25,8 +25,8 @@ CheckOptions:
   readability-identifier-naming.ClassCase: CamelCase
   readability-identifier-naming.StructCase: CamelCase
   readability-identifier-naming.FunctionCase: camelBack
-  readability-identifier-naming.VariableCase: any
-  readability-identifier-naming.ParameterCase: any
+  readability-identifier-naming.VariableCase: aNy_CasE
+  readability-identifier-naming.ParameterCase: aNy_CasE
   readability-identifier-naming.MemberCase: lower_case
   readability-identifier-naming.MemberSuffix: _
   readability-identifier-naming.GlobalConstantCase: UPPER_CASE
