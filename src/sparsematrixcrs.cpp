@@ -22,13 +22,13 @@
 
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(std::size_t rows, std::size_t cols)
-    : num_rows_(rows), num_cols_(cols), row_ptr_(rows + 1, 0) {}
+    : num_rows_(rows), num_cols_(cols), values_(), col_idx_(), row_ptr_(rows + 1, 0) {}
 
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(
     std::size_t rows, std::size_t cols,
     std::vector<std::vector<std::pair<std::size_t, double>>> const& entries_per_row)
-    : num_rows_(rows), num_cols_(cols), row_ptr_{0} // initial row offset
+    : num_rows_(rows), num_cols_(cols), values_(), col_idx_(), row_ptr_{0} // initial row offset
 {
     // Validate the number of supplied rows.
     if (entries_per_row.size() > rows) {
@@ -78,7 +78,7 @@ SparseMatrixCRS::SparseMatrixCRS(
 //-----------------------------------------------------------------------------
 SparseMatrixCRS::SparseMatrixCRS(WeightedGraph const& graph)
     : num_rows_(graph.getAdjacency().size()), num_cols_(num_rows_), // Assuming square matrix
-      row_ptr_{0}                                                   // initial row offset
+      values_(), col_idx_(), row_ptr_{0}                            // initial row offset
 {
     auto const& weights = graph.getWeights();
 

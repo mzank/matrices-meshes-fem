@@ -25,7 +25,7 @@
 //-----------------------------------------------------------------------------
 WeightedGraph::WeightedGraph(std::vector<std::set<std::size_t>> const& node_to_neighbors,
                              std::vector<Coord> const& coords)
-    : Graph(node_to_neighbors) {
+    : Graph(node_to_neighbors), weights_() {
     if (coords.size() != adj_.size())
         throw std::invalid_argument("Number of coordinates must match number of nodes");
 

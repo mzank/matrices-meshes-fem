@@ -14,6 +14,7 @@ include(GNUInstallDirs)
 option(BUILD_TESTING "Enable testing" OFF)
 option(ENABLE_CLANG_TIDY "Enable Clang-Tidy analysis" OFF)
 option(ENABLE_FORMAT_TARGETS "Add clang-format targets" OFF)
+option(ENABLE_FIRST_ERROR_ONLY "Stop compiling after the first error" OFF)
 option(ENABLE_NATIVE_ARCH "Use -march=native for CPU code" OFF)
 option(ENABLE_FAST_MATH "Enable fast-math optimizations" OFF)
 
@@ -63,8 +64,20 @@ function(matrices_meshes_fem_set_compile_options target)
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wpedantic>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wconversion>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wsign-conversion>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Weffc++>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Woverloaded-virtual>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wfloat-equal>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wshadow>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wredundant-decls>
         $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/W4>
     )
+
+    if(ENABLE_FIRST_ERROR_ONLY)
+        # Diagnostic-only flag; opt in so normal builds still show all errors.
+        target_compile_options(${target} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-fmax-errors=1>
+        )
+    endif()
 
     if(ENABLE_NATIVE_ARCH)
         # MSVC has no direct equivalent of -march=native.

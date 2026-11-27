@@ -26,7 +26,8 @@
 
 //-----------------------------------------------------------------------------
 Mesh::Mesh(std::string const& node_file, std::string const& element_file)
-    : num_nodes_(0), num_elements_(0) {
+    : nodes_(), num_nodes_(0), elements_(), num_elements_(0), node_to_elements_(),
+      edge_to_elements_(), element_neighbors_(), node_neighbors_() {
     if (!readNodes(node_file))
         throw std::runtime_error("Mesh constructor: Failed to read node file '" + node_file + "'");
 

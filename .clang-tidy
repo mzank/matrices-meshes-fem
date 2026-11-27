@@ -13,6 +13,7 @@ Checks: >
   -readability-braces-around-statements,
   -readability-function-cognitive-complexity,
   -readability-convert-member-functions-to-static,
+  -readability-redundant-member-init,
   misc-include-cleaner
 
 WarningsAsErrors: ''
