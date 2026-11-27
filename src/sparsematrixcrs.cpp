@@ -246,8 +246,8 @@ void SparseMatrixCRS::writeBinary(std::string const& filename) const {
     std::size_t const nnz = values_.size();
     auto const max_stream_size =
         static_cast<std::size_t>(std::numeric_limits<std::streamsize>::max());
-    auto const to_stream_size = [max_stream_size, &filename](std::size_t const count,
-                                                             std::size_t const element_size) {
+    auto const to_stream_size = [&filename](std::size_t const count,
+                                            std::size_t const element_size) {
         if (count > max_stream_size / element_size)
             throw std::runtime_error("Matrix too large to write: " + filename);
         return static_cast<std::streamsize>(count * element_size);
