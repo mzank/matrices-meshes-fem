@@ -240,14 +240,31 @@ void SparseMatrixCRS::writeBinary(std::string const& filename) const {
         throw std::runtime_error("Cannot open file for writing: " + filename);
 
     std::size_t const nnz = values_.size();
+    auto const max_stream_size =
+        static_cast<std::size_t>(std::numeric_limits<std::streamsize>::max());
+    auto const to_stream_size = [max_stream_size, &filename](std::size_t const count,
+                                                             std::size_t const element_size) {
+        if (count > max_stream_size / element_size)
+            throw std::runtime_error("Matrix too large to write: " + filename);
+        return static_cast<std::streamsize>(count * element_size);
+    };
+    auto const write_array = [&f_out](void const* data, std::streamsize const bytes) {
+        if (bytes > 0)
+            f_out.write(reinterpret_cast<char const*>(data), bytes);
+    };
+
+    // Validate all sizes before writing the header so an oversized matrix leaves no partial file.
+    std::streamsize const values_bytes = to_stream_size(nnz, sizeof(double));
+    std::streamsize const col_idx_bytes = to_stream_size(nnz, sizeof(std::size_t));
+    std::streamsize const row_ptr_bytes = to_stream_size(row_ptr_.size(), sizeof(std::size_t));
+
     f_out.write(reinterpret_cast<char const*>(&num_rows_), sizeof(std::size_t));
     f_out.write(reinterpret_cast<char const*>(&num_cols_), sizeof(std::size_t));
     f_out.write(reinterpret_cast<char const*>(&nnz), sizeof(std::size_t));
 
-    f_out.write(reinterpret_cast<char const*>(values_.data()), nnz * sizeof(double));
-    f_out.write(reinterpret_cast<char const*>(col_idx_.data()), nnz * sizeof(std::size_t));
-    f_out.write(reinterpret_cast<char const*>(row_ptr_.data()),
-                (num_rows_ + 1) * sizeof(std::size_t));
+    write_array(values_.data(), values_bytes);
+    write_array(col_idx_.data(), col_idx_bytes);
+    write_array(row_ptr_.data(), row_ptr_bytes);
 }
 
 //-----------------------------------------------------------------------------
