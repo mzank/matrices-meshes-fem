@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 # -----------------------------------------------------------------------------
 option(BUILD_TESTING "Enable testing" OFF)
 option(ENABLE_CLANG_TIDY "Enable Clang-Tidy analysis" OFF)
+option(ENABLE_FORMAT_TARGETS "Add clang-format targets" OFF)
 option(ENABLE_NATIVE_ARCH "Use -march=native for CPU code" OFF)
 option(ENABLE_FAST_MATH "Enable fast-math optimizations" OFF)
 
@@ -27,6 +28,29 @@ endif()
 
 # The language standard is requested per target via target_compile_features().
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+
+# -----------------------------------------------------------------------------
+# Clang-Tidy
+# -----------------------------------------------------------------------------
+if(ENABLE_CLANG_TIDY)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy")
+        message(FATAL_ERROR "ENABLE_CLANG_TIDY=ON but ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy is missing")
+    endif()
+
+    find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy
+        REQUIRED
+    )
+    mark_as_advanced(CLANG_TIDY_EXE)
+
+    set(MMF_CLANG_TIDY
+        "${CLANG_TIDY_EXE}"
+        "--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
+    )
+
+    message(STATUS "Clang-Tidy enabled: ${CLANG_TIDY_EXE}")
+endif()
 
 
 # -----------------------------------------------------------------------------
@@ -66,50 +90,52 @@ endfunction()
 # -----------------------------------------------------------------------------
 # Clang-Format
 # -----------------------------------------------------------------------------
-find_program(CLANG_FORMAT_EXE
-    NAMES clang-format
-)
+if(ENABLE_FORMAT_TARGETS)
+    find_program(CLANG_FORMAT_EXE
+        NAMES clang-format
+        REQUIRED
+    )
+    mark_as_advanced(CLANG_FORMAT_EXE)
 
-if(CLANG_FORMAT_EXE)
-    file(GLOB_RECURSE PROJECT_CXX_FILES CONFIGURE_DEPENDS
+    set(MMF_CLANG_FORMAT_MIN_VERSION 18 CACHE STRING "Minimum clang-format major version")
+    execute_process(
+        COMMAND ${CLANG_FORMAT_EXE} --version
+        OUTPUT_VARIABLE MMF_CLANG_FORMAT_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(MMF_CLANG_FORMAT_VERSION MATCHES "version ([0-9]+)")
+        if(CMAKE_MATCH_1 LESS MMF_CLANG_FORMAT_MIN_VERSION)
+            message(FATAL_ERROR
+                "clang-format ${MMF_CLANG_FORMAT_MIN_VERSION} or newer is required "
+                "(found: ${MMF_CLANG_FORMAT_VERSION})")
+        endif()
+    else()
+        message(WARNING "Could not determine clang-format version; formatting may differ across versions.")
+    endif()
+
+    file(GLOB_RECURSE MMF_CXX_FILES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
         ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h
     )
 
-    add_custom_target(format
-        COMMAND ${CLANG_FORMAT_EXE} -i ${PROJECT_CXX_FILES}
+    add_custom_target(mmf-format
+        COMMAND ${CLANG_FORMAT_EXE} -i ${MMF_CXX_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Formatting C++ source files"
     )
 
-    add_custom_target(format-check
+    add_custom_target(mmf-format-check
         COMMAND ${CLANG_FORMAT_EXE}
         --dry-run
         --Werror
-        ${PROJECT_CXX_FILES}
+        ${MMF_CXX_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Checking C++ formatting"
     )
-endif()
-
-
-# -----------------------------------------------------------------------------
-# Clang-Tidy
-# -----------------------------------------------------------------------------
-if(ENABLE_CLANG_TIDY)
-    find_program(CLANG_TIDY_EXE
-        NAMES clang-tidy
-        REQUIRED
-    )
-
-    set(MMF_CLANG_TIDY
-        "${CLANG_TIDY_EXE}"
-        "--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
-    )
-
-    message(STATUS "Clang-Tidy enabled: ${CLANG_TIDY_EXE}")
 endif()
 
 
