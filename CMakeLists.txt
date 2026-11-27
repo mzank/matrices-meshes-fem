@@ -11,8 +11,12 @@ include(GNUInstallDirs)
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
+option(BUILD_TESTING "Enable testing" OFF)
+option(ENABLE_CLANG_TIDY "Enable Clang-Tidy analysis" OFF)
 option(ENABLE_NATIVE_ARCH "Use -march=native for CPU code" OFF)
 option(ENABLE_FAST_MATH "Enable fast-math optimizations" OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -33,6 +37,8 @@ function(matrices_meshes_fem_set_compile_options target)
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wall>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wextra>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wpedantic>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wconversion>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wsign-conversion>
         $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/W4>
     )
 
@@ -49,7 +55,62 @@ function(matrices_meshes_fem_set_compile_options target)
             $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/fp:fast>
         )
     endif()
+
+    # Apply Clang-Tidy only to project targets, not to fetched dependencies.
+    if(ENABLE_CLANG_TIDY)
+        set_target_properties(${target} PROPERTIES CXX_CLANG_TIDY "${MMF_CLANG_TIDY}")
+    endif()
 endfunction()
+
+
+# -----------------------------------------------------------------------------
+# Clang-Format
+# -----------------------------------------------------------------------------
+find_program(CLANG_FORMAT_EXE
+    NAMES clang-format
+)
+
+if(CLANG_FORMAT_EXE)
+    file(GLOB_RECURSE PROJECT_CXX_FILES CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+    )
+
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT_EXE} -i ${PROJECT_CXX_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Formatting C++ source files"
+    )
+
+    add_custom_target(format-check
+        COMMAND ${CLANG_FORMAT_EXE}
+        --dry-run
+        --Werror
+        ${PROJECT_CXX_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Checking C++ formatting"
+    )
+endif()
+
+
+# -----------------------------------------------------------------------------
+# Clang-Tidy
+# -----------------------------------------------------------------------------
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy
+        REQUIRED
+    )
+
+    set(MMF_CLANG_TIDY
+        "${CLANG_TIDY_EXE}"
+        "--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
+    )
+
+    message(STATUS "Clang-Tidy enabled: ${CLANG_TIDY_EXE}")
+endif()
 
 
 # -----------------------------------------------------------------------------
